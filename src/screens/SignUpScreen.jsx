@@ -5,6 +5,7 @@ import AuthCard from '../components/AuthCard';
 import TextField from '../components/TextField';
 import PasswordField from '../components/PasswordField';
 import GoogleButton from '../components/GoogleButton';
+import PrimaryButton from '../components/PrimaryButton';
 import { signUpSchema } from '../utils/validation';
 
 export default function SignUpScreen({ navigation }) {
@@ -79,14 +80,12 @@ export default function SignUpScreen({ navigation }) {
             placeholder="Confirm Password"
             error={errors.confirmPassword}
           />
-          <Pressable
+          <PrimaryButton
+            title="Create Account"
             onPress={handleSubmit}
-            accessibilityRole="button"
             accessibilityLabel="Create Account"
-            className="mt-6 items-center rounded-full bg-peach-400 py-3 shadow-md"
-            style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-            <Text className="font-semibold text-white">Create Account</Text>
-          </Pressable>
+            className="mt-6"
+          />
           <GoogleButton onPress={() => Alert.alert('Google sign-in is not available yet')} />
         </AuthCard>
         <View className="mt-6 flex-row justify-center">
