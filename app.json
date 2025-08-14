@@ -4,6 +4,9 @@
     "slug": "technomart-mobile-app",
     "version": "1.0.0",
     "orientation": "portrait",
+    "web" : {
+      "bundler": "metro"
+    },
     "icon": "./assets/logo.png",
     "splash": {
       "image": "./assets/logo.png",
@@ -12,10 +15,20 @@
     },
     "userInterfaceStyle": "light",
     "updates": {
+      "enabled": false,
       "fallbackToCacheTimeout": 0
     },
     "assetBundlePatterns": [
       "**/*"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "724f128a-e5fa-4d17-b1dc-5358de696900"
+      }
+    },
+    "android": {
+      "package": "com.joseph224.technomartmobileapp"
+    },
+    "owner": "joseph224"
   }
 }
