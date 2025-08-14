@@ -8,7 +8,8 @@ export default function GoogleButton({ onPress }) {
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel="Continue with Google"
-      className="flex-row items-center justify-center mt-4 rounded-full bg-white py-3 shadow-md"
+      className="mt-4 w-full flex-row items-center justify-center rounded-full border border-peach-200 bg-white py-3 shadow-sm"
+      style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
     >
       <Ionicons name="logo-google" size={20} color="#1E1E1E" />
       <Text className="ml-2 font-semibold text-text">Continue with Google</Text>

@@ -17,8 +17,8 @@ export default function PasswordField({
     <View className="mt-4">
       <Text className="mb-2 font-semibold text-text">{label}</Text>
       <View
-        className={`flex-row items-center rounded-full px-4 py-3 ${
-          focused ? 'bg-cream border-2 border-peach-400 shadow-sm' : 'bg-peach-200'
+        className={`flex-row items-center rounded-xl border px-4 py-3 ${
+          focused ? 'border-peach-400 bg-cream shadow-sm' : 'border-peach-200 bg-white'
         }`}
       >
         <Ionicons name="lock-closed-outline" size={20} color="#5F5F5F" />
@@ -27,7 +27,7 @@ export default function PasswordField({
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor="rgba(30,30,30,0.7)"
+          placeholderTextColor="rgba(30,30,30,0.5)"
           secureTextEntry={secure}
           autoCapitalize="none"
           autoCorrect={false}

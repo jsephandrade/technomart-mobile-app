@@ -6,6 +6,7 @@ import TextField from '../components/TextField';
 import PasswordField from '../components/PasswordField';
 import GoogleButton from '../components/GoogleButton';
 import { loginSchema } from '../utils/validation';
+import PrimaryButton from '../components/PrimaryButton';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -59,14 +60,12 @@ export default function LoginScreen({ navigation }) {
             placeholder="Enter Password"
             error={errors.password}
           />
-          <Pressable
+          <PrimaryButton
+            title="Log In"
             onPress={handleSubmit}
-            accessibilityRole="button"
             accessibilityLabel="Log in"
-            className="mt-6 items-center rounded-full bg-peach-400 py-3 shadow-md"
-            style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-            <Text className="font-semibold text-white">Log In</Text>
-          </Pressable>
+            className="mt-6"
+          />
           <GoogleButton onPress={() => Alert.alert('Google sign-in is not available yet')} />
           <Pressable
             className="mt-3"
