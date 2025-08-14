@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "TechnoMart",
+    "slug": "technomart-mobile-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "icon": "./assets/logo.png",
+    "splash": {
+      "image": "./assets/logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFE0C2"
+    },
+    "assetBundlePatterns": ["**/*"]
+  }
+}
