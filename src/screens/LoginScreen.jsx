@@ -41,7 +41,7 @@ export default function LoginScreen({ navigation }) {
           />
         </View>
         <AuthCard>
-          <Text className="text-4xl font-bold text-text">Welcome Back</Text>
+          <Text className="text-4xl font-bold text-text">Hello</Text>
           <Text className="mt-1 text-base text-sub">Sign in to continue</Text>
           <TextField
             label="Email"
