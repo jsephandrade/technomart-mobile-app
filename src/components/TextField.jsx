@@ -14,11 +14,11 @@ export default function TextField({
 }) {
   return (
     <View className="mt-4">
-      <Text className="text-text font-semibold mb-2">{label}</Text>
-      <View className="flex-row items-center bg-peach-200 rounded-2xl px-4 py-3">
+      <Text className="mb-2 font-semibold text-text">{label}</Text>
+      <View className="flex-row items-center rounded-2xl bg-peach-200 px-4 py-3">
         {iconName ? <Ionicons name={iconName} size={20} color="#5F5F5F" /> : null}
         <TextInput
-          className="flex-1 ml-3 text-text"
+          className={`flex-1 text-text ${iconName ? 'ml-3' : ''}`}
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
@@ -28,7 +28,7 @@ export default function TextField({
           {...rest}
         />
       </View>
-      {error ? <Text className="text-red-500 text-sm mt-1">{error}</Text> : null}
+      {error ? <Text className="mt-1 text-sm text-red-500">{error}</Text> : null}
     </View>
   );
 }
