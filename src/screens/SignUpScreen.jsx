@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,10 +9,15 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as WebBrowser from 'expo-web-browser';
+import * as Google from 'expo-auth-session/providers/google';
 import AuthCard from '../components/AuthCard';
 import TextField from '../components/TextField';
 import PasswordField from '../components/PasswordField';
+import GoogleButton from '../components/GoogleButton';
 import { signUpSchema } from '../utils/validation';
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function SignUpScreen({ navigation }) {
   const [name, setName] = useState('');
@@ -20,6 +25,18 @@ export default function SignUpScreen({ navigation }) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState({});
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+    expoClientId: process.env.EXPO_PUBLIC_GOOGLE_EXPO_CLIENT_ID,
+  });
+
+  useEffect(() => {
+    if (response?.type === 'success') {
+      Alert.alert('Signed up with Google!');
+    }
+  }, [response]);
 
   const handleSubmit = async () => {
     try {
@@ -44,9 +61,9 @@ export default function SignUpScreen({ navigation }) {
     <SafeAreaView className="flex-1 bg-peach-100">
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
+        className="flex-1 justify-center"
       >
-        <View className="items-center mt-6">
+        <View className="items-center mb-6">
           <Image
             source={require('../../assets/logo.png')}
             className="w-40 h-24"
@@ -54,8 +71,8 @@ export default function SignUpScreen({ navigation }) {
           />
         </View>
         <AuthCard>
-          <Text className="text-4xl font-extrabold text-text">Create Account</Text>
-          <Text className="text-base text-sub mt-1">Sign up to get started</Text>
+          <Text className="text-4xl font-bold text-text">Create Account</Text>
+          <Text className="mt-1 text-base text-sub">Join us to get started</Text>
           <TextField
             label="Name"
             value={name}
@@ -91,20 +108,21 @@ export default function SignUpScreen({ navigation }) {
             onPress={handleSubmit}
             accessibilityRole="button"
             accessibilityLabel="Create Account"
-            className="rounded-full py-3 items-center mt-6 shadow-md"
-            style={({ pressed }) => ({ backgroundColor: pressed ? '#FF9833' : '#FFB066' })}
+            className="items-center rounded-full bg-peach-400 py-3 mt-6 shadow-md"
+            style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
           >
-            <Text className="text-text font-semibold">Create Account</Text>
+            <Text className="font-semibold text-white">Create Account</Text>
           </Pressable>
+          <GoogleButton onPress={() => promptAsync()} />
         </AuthCard>
-        <View className="flex-row justify-center mt-6">
+        <View className="mt-6 flex-row justify-center">
           <Text className="text-sub">Already have an account? </Text>
           <Pressable
             onPress={() => navigation.navigate('Login')}
             accessibilityRole="link"
             accessibilityLabel="Log In"
           >
-            <Text className="text-peach-400 font-bold underline">Log In</Text>
+            <Text className="font-bold text-peach-400 underline">Log In</Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>
