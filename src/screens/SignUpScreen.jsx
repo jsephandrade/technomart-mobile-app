@@ -1,17 +1,11 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  Image,
-  Pressable,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
+import { View, Text, Image, Pressable, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AuthCard from '../components/AuthCard';
 import TextField from '../components/TextField';
 import PasswordField from '../components/PasswordField';
+import GoogleButton from '../components/GoogleButton';
+import PrimaryButton from '../components/PrimaryButton';
 import { signUpSchema } from '../utils/validation';
 
 export default function SignUpScreen({ navigation }) {
@@ -44,18 +38,17 @@ export default function SignUpScreen({ navigation }) {
     <SafeAreaView className="flex-1 bg-peach-100">
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
-      >
-        <View className="items-center mt-6">
+        className="flex-1 justify-center">
+        <View className="mb-6 items-center">
           <Image
             source={require('../../assets/logo.png')}
-            className="w-40 h-24"
+            className="h-24 w-40"
             resizeMode="contain"
           />
         </View>
         <AuthCard>
-          <Text className="text-4xl font-extrabold text-text">Create Account</Text>
-          <Text className="text-base text-sub mt-1">Sign up to get started</Text>
+          <Text className="text-4xl font-bold text-text">Create Account</Text>
+          <Text className="mt-1 text-base text-sub">Join us to get started</Text>
           <TextField
             label="Name"
             value={name}
@@ -87,24 +80,20 @@ export default function SignUpScreen({ navigation }) {
             placeholder="Confirm Password"
             error={errors.confirmPassword}
           />
-          <Pressable
+          <PrimaryButton
+            title="Create Account"
             onPress={handleSubmit}
-            accessibilityRole="button"
-            accessibilityLabel="Create Account"
-            className="rounded-full py-3 items-center mt-6 shadow-md"
-            style={({ pressed }) => ({ backgroundColor: pressed ? '#FF9833' : '#FFB066' })}
-          >
-            <Text className="text-text font-semibold">Create Account</Text>
-          </Pressable>
+            className="mt-6"
+          />
+          <GoogleButton onPress={() => Alert.alert('Google sign-in is not available yet')} />
         </AuthCard>
-        <View className="flex-row justify-center mt-6">
+        <View className="mt-6 flex-row justify-center">
           <Text className="text-sub">Already have an account? </Text>
           <Pressable
             onPress={() => navigation.navigate('Login')}
             accessibilityRole="link"
-            accessibilityLabel="Log In"
-          >
-            <Text className="text-peach-400 font-bold underline">Log In</Text>
+            accessibilityLabel="Log In">
+            <Text className="font-bold text-peach-400 underline">Log In</Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>

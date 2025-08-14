@@ -1,17 +1,11 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  Image,
-  Pressable,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
+import { View, Text, Image, Pressable, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AuthCard from '../components/AuthCard';
 import TextField from '../components/TextField';
 import PasswordField from '../components/PasswordField';
+import GoogleButton from '../components/GoogleButton';
+import PrimaryButton from '../components/PrimaryButton';
 import { loginSchema } from '../utils/validation';
 
 export default function LoginScreen({ navigation }) {
@@ -39,18 +33,17 @@ export default function LoginScreen({ navigation }) {
     <SafeAreaView className="flex-1 bg-peach-100">
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
-      >
-        <View className="items-center mt-6">
+        className="flex-1 justify-center">
+        <View className="mb-6 items-center">
           <Image
             source={require('../../assets/logo.png')}
-            className="w-40 h-24"
+            className="h-24 w-40"
             resizeMode="contain"
           />
         </View>
         <AuthCard>
-          <Text className="text-4xl font-extrabold text-text">Hello.</Text>
-          <Text className="text-base text-sub mt-1">Welcome back</Text>
+          <Text className="text-4xl font-bold text-text">Welcome Back</Text>
+          <Text className="mt-1 text-base text-sub">Sign in to continue</Text>
           <TextField
             label="Email"
             value={email}
@@ -67,32 +60,23 @@ export default function LoginScreen({ navigation }) {
             placeholder="Enter Password"
             error={errors.password}
           />
-          <Pressable
-            onPress={handleSubmit}
-            accessibilityRole="button"
-            accessibilityLabel="Log in"
-            className="rounded-full py-3 items-center mt-6 shadow-md"
-            style={({ pressed }) => ({ backgroundColor: pressed ? '#FF9833' : '#FFB066' })}
-          >
-            <Text className="text-text font-semibold">Log In</Text>
-          </Pressable>
+          <PrimaryButton title="Log In" onPress={handleSubmit} className="mt-6" />
+          <GoogleButton onPress={() => Alert.alert('Google sign-in is not available yet')} />
           <Pressable
             className="mt-3"
             onPress={() => {}}
             accessibilityRole="link"
-            accessibilityLabel="Forgot password"
-          >
-            <Text className="text-peach-400 underline text-center">Forgot password?</Text>
+            accessibilityLabel="Forgot password">
+            <Text className="text-center text-peach-400 underline">Forgot password?</Text>
           </Pressable>
         </AuthCard>
-        <View className="flex-row justify-center mt-6">
+        <View className="mt-6 flex-row justify-center">
           <Text className="text-sub">Don’t have an account? </Text>
           <Pressable
             onPress={() => navigation.navigate('SignUp')}
             accessibilityRole="link"
-            accessibilityLabel="Sign Up"
-          >
-            <Text className="text-peach-400 font-bold underline">Sign Up</Text>
+            accessibilityLabel="Sign Up">
+            <Text className="font-bold text-peach-400 underline">Sign Up</Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>
