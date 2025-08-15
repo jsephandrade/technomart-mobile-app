@@ -31,6 +31,7 @@ export default function TextField({
           placeholderTextColor="rgba(30,30,30,0.5)"
           keyboardType={keyboardType}
           autoCapitalize="none"
+          autoCorrect={false}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           {...rest}

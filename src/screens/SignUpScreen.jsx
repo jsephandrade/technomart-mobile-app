@@ -42,7 +42,7 @@ export default function SignUpScreen({ navigation }) {
         <View className="mb-6 items-center">
           <Image
             source={require('../../assets/logo.png')}
-            className="h-24 w-40"
+            className="h-32 w-56"
             resizeMode="contain"
           />
         </View>

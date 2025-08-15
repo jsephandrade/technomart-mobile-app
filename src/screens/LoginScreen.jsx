@@ -37,7 +37,7 @@ export default function LoginScreen({ navigation }) {
         <View className="mb-6 items-center">
           <Image
             source={require('../../assets/logo.png')}
-            className="h-24 w-40"
+            className="h-32 w-56"
             resizeMode="contain"
           />
         </View>
@@ -69,7 +69,12 @@ export default function LoginScreen({ navigation }) {
           <GoogleButton onPress={() => Alert.alert('Google sign-in is not available yet')} />
           <Pressable
             className="mt-3"
-            onPress={() => {}}
+            onPress={() =>
+              Alert.alert(
+                'Forgot password',
+                'Password reset functionality is coming soon.'
+              )
+            }
             accessibilityRole="link"
             accessibilityLabel="Forgot password">
             <Text className="text-center text-peach-400 underline">Forgot password?</Text>
@@ -79,6 +84,7 @@ export default function LoginScreen({ navigation }) {
           <Text className="text-sub">Don’t have an account? </Text>
           <Pressable
             onPress={() => navigation.navigate('SignUp')}
+            hitSlop={8}
             accessibilityRole="link"
             accessibilityLabel="Sign Up">
             <Text className="font-bold text-peach-400 underline">Sign Up</Text>
