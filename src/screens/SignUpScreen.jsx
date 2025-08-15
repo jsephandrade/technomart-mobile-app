@@ -78,7 +78,7 @@ export default function SignUpScreen({ navigation }) {
         className="flex-1">
         <ScrollView
           contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
-          keyboardShouldPersistTaps="handled"
+          keyboardShouldPersistTaps="always"
           showsVerticalScrollIndicator={false}>
           <View className="mb-6 items-center">
             <Image

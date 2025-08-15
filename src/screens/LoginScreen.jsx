@@ -7,6 +7,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   ScrollView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AuthCard from '../components/AuthCard';
@@ -60,10 +61,12 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <SafeAreaView className="flex-1 bg-peach-100">
-      <KeyboardAvoidingView behavior="padding" className="flex-1">
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        className="flex-1">
         <ScrollView
           contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
-          keyboardShouldPersistTaps="handled"
+          keyboardShouldPersistTaps="always"
           showsVerticalScrollIndicator={false}>
           <View className="mb-6 items-center">
             <Image
