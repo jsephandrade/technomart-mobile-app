@@ -27,7 +27,8 @@
       }
     },
     "android": {
-      "package": "com.joseph224.technomartmobileapp"
+      "package": "com.joseph224.technomartmobileapp",
+      "windowSoftInputMode": "adjustPan"
     },
     "owner": "joseph224"
   }

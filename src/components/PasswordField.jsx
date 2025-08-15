@@ -18,10 +18,14 @@ export default function PasswordField({
       <Text className="mb-2 font-semibold text-text">{label}</Text>
       <View
         className={`flex-row items-center rounded-xl border px-4 py-3 ${
-          focused ? 'border-peach-400 bg-cream' : 'border-peach-200 bg-white'
+          error
+            ? 'border-red-500 bg-white'
+            : focused
+            ? 'border-peach-400 bg-cream'
+            : 'border-peach-200 bg-white'
         }`}
         style={
-          focused
+          focused && !error
             ? {
                 shadowColor: '#000',
                 shadowOffset: { width: 0, height: 1 },
