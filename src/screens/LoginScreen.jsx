@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, Image, Pressable, Alert, KeyboardAvoidingView, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  Pressable,
+  Alert,
+  KeyboardAvoidingView,
+  ScrollView,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AuthCard from '../components/AuthCard';
 import TextField from '../components/TextField';
@@ -12,12 +20,12 @@ export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
     try {
       await loginSchema.validate({ email, password }, { abortEarly: false });
       setErrors({});
-      Alert.alert('Logged in!');
     } catch (err) {
       const formErrors = {};
       if (err.inner) {
@@ -26,6 +34,27 @@ export default function LoginScreen({ navigation }) {
         });
       }
       setErrors(formErrors);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch('https://reqres.in/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Login failed');
+      }
+      Alert.alert('Logged in!', `Token: ${data.token}`);
+      setEmail('');
+      setPassword('');
+    } catch (err) {
+      Alert.alert('Login failed', err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -35,8 +64,7 @@ export default function LoginScreen({ navigation }) {
         <ScrollView
           contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
           keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
+          showsVerticalScrollIndicator={false}>
           <View className="mb-6 items-center">
             <Image
               source={require('../../assets/logo.png')}
@@ -68,6 +96,7 @@ export default function LoginScreen({ navigation }) {
               onPress={handleSubmit}
               accessibilityLabel="Log in"
               className="mt-6"
+              loading={loading}
             />
             <GoogleButton onPress={() => Alert.alert('Google sign-in is not available yet')} />
             <Pressable

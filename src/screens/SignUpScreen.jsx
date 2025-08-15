@@ -14,6 +14,7 @@ export default function SignUpScreen({ navigation }) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
     try {
@@ -22,7 +23,6 @@ export default function SignUpScreen({ navigation }) {
         { abortEarly: false }
       );
       setErrors({});
-      Alert.alert('Account created!');
     } catch (err) {
       const formErrors = {};
       if (err.inner) {
@@ -31,6 +31,34 @@ export default function SignUpScreen({ navigation }) {
         });
       }
       setErrors(formErrors);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch('https://reqres.in/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Registration failed');
+      }
+      Alert.alert('Account created!', `ID: ${data.id}`, [
+        {
+          text: 'OK',
+          onPress: () => navigation.navigate('Login'),
+        },
+      ]);
+      setName('');
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+    } catch (err) {
+      Alert.alert('Registration failed', err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -85,6 +113,7 @@ export default function SignUpScreen({ navigation }) {
             onPress={handleSubmit}
             accessibilityLabel="Create account"
             className="mt-6"
+            loading={loading}
           />
           <GoogleButton onPress={() => Alert.alert('Google sign-in is not available yet')} />
         </AuthCard>

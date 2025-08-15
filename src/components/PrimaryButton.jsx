@@ -1,7 +1,14 @@
 import React from 'react';
-import { Pressable, Text } from 'react-native';
+import { ActivityIndicator, Pressable, Text } from 'react-native';
 
-export default function PrimaryButton({ title, onPress, accessibilityLabel, className = '', ...rest }) {
+export default function PrimaryButton({
+  title,
+  onPress,
+  accessibilityLabel,
+  className = '',
+  loading = false,
+  ...rest
+}) {
   return (
     <Pressable
       onPress={onPress}
@@ -17,9 +24,13 @@ export default function PrimaryButton({ title, onPress, accessibilityLabel, clas
         shadowRadius: 6,
         elevation: 4,
       })}
-      {...rest}
-    >
-      <Text className="font-semibold text-white">{title}</Text>
+      disabled={loading}
+      {...rest}>
+      {loading ? (
+        <ActivityIndicator color="#fff" />
+      ) : (
+        <Text className="font-semibold text-white">{title}</Text>
+      )}
     </Pressable>
   );
 }
