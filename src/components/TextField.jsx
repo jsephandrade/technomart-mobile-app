@@ -19,8 +19,19 @@ export default function TextField({
       <Text className="mb-2 font-semibold text-text">{label}</Text>
       <View
         className={`flex-row items-center rounded-xl border px-4 py-3 ${
-          focused ? 'border-peach-400 bg-cream shadow-sm' : 'border-peach-200 bg-white'
+          focused ? 'border-peach-400 bg-cream' : 'border-peach-200 bg-white'
         }`}
+        style={
+          focused
+            ? {
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.05,
+                shadowRadius: 2,
+                elevation: 1,
+              }
+            : undefined
+        }
       >
         {iconName ? <Ionicons name={iconName} size={20} color="#5F5F5F" /> : null}
         <TextInput
