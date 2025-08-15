@@ -66,7 +66,7 @@ export default function LoginScreen({ navigation }) {
         className="flex-1">
         <ScrollView
           contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
-          keyboardShouldPersistTaps="always"
+          keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
           <View className="mb-6 items-center">
             <Image
@@ -86,6 +86,7 @@ export default function LoginScreen({ navigation }) {
               iconName="mail-outline"
               keyboardType="email-address"
               error={errors.email}
+              editable={!loading}
             />
             <PasswordField
               label="Password"
@@ -93,6 +94,7 @@ export default function LoginScreen({ navigation }) {
               onChangeText={setPassword}
               placeholder="Enter Password"
               error={errors.password}
+              editable={!loading}
             />
             <PrimaryButton
               title="Log In"

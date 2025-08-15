@@ -10,6 +10,7 @@ export default function TextField({
   iconName,
   keyboardType = 'default',
   error,
+  editable = true,
   ...rest
 }) {
   const [focused, setFocused] = useState(false);
@@ -48,6 +49,7 @@ export default function TextField({
           autoCapitalize="none"
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
+          editable={editable}
           {...rest}
         />
       </View>

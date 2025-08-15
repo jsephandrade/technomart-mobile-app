@@ -8,6 +8,7 @@ export default function PasswordField({
   onChangeText,
   placeholder,
   error,
+  editable = true,
   ...rest
 }) {
   const [secure, setSecure] = useState(true);
@@ -48,6 +49,7 @@ export default function PasswordField({
           autoCorrect={false}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
+          editable={editable}
           {...rest}
         />
         <Pressable

@@ -78,7 +78,7 @@ export default function SignUpScreen({ navigation }) {
         className="flex-1">
         <ScrollView
           contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
-          keyboardShouldPersistTaps="always"
+          keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
           <View className="mb-6 items-center">
             <Image
@@ -97,6 +97,7 @@ export default function SignUpScreen({ navigation }) {
               placeholder="Enter Name"
               iconName="person-outline"
               error={errors.name}
+              editable={!loading}
             />
             <TextField
               label="Email"
@@ -106,6 +107,7 @@ export default function SignUpScreen({ navigation }) {
               iconName="mail-outline"
               keyboardType="email-address"
               error={errors.email}
+              editable={!loading}
             />
             <PasswordField
               label="Password"
@@ -113,6 +115,7 @@ export default function SignUpScreen({ navigation }) {
               onChangeText={setPassword}
               placeholder="Enter Password"
               error={errors.password}
+              editable={!loading}
             />
             <PasswordField
               label="Confirm Password"
@@ -120,6 +123,7 @@ export default function SignUpScreen({ navigation }) {
               onChangeText={setConfirmPassword}
               placeholder="Confirm Password"
               error={errors.confirmPassword}
+              editable={!loading}
             />
             <PrimaryButton
               title="Create Account"
