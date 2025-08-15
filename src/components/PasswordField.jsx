@@ -31,6 +31,8 @@ export default function PasswordField({
           secureTextEntry={secure}
           autoCapitalize="none"
           autoCorrect={false}
+          editable={true}
+          returnKeyType="done"
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           {...rest}

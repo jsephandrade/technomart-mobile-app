@@ -32,6 +32,8 @@ export default function TextField({
           keyboardType={keyboardType}
           autoCapitalize="none"
           autoCorrect={false}
+          editable={true}
+          returnKeyType="next"
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           {...rest}
