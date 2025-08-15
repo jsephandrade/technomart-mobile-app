@@ -9,13 +9,16 @@ import { loginSchema } from '../utils/validation';
 import PrimaryButton from '../components/PrimaryButton';
 
 export default function LoginScreen({ navigation }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
+
+const handleFieldChange = (field, value) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleSubmit = async () => {
     try {
-      await loginSchema.validate({ email, password }, { abortEarly: false });
+      await loginSchema.validate(form, { abortEarly: false });
       setErrors({});
       Alert.alert('Logged in!');
     } catch (err) {
@@ -46,8 +49,8 @@ export default function LoginScreen({ navigation }) {
           <Text className="mt-1 text-base text-sub">Sign in to continue</Text>
           <TextField
             label="Email"
-            value={email}
-            onChangeText={setEmail}
+            value={form.email}
+            onChangeText={(text) => handleFieldChange('email', text)}
             placeholder="Enter Email"
             iconName="mail-outline"
             keyboardType="email-address"
@@ -55,8 +58,8 @@ export default function LoginScreen({ navigation }) {
           />
           <PasswordField
             label="Password"
-            value={password}
-            onChangeText={setPassword}
+            value={form.password}
+            onChangeText={(text) => handleFieldChange('password', text)}
             placeholder="Enter Password"
             error={errors.password}
           />

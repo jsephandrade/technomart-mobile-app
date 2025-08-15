@@ -9,18 +9,21 @@ import { signUpSchema } from '../utils/validation';
 import PrimaryButton from '../components/PrimaryButton';
 
 export default function SignUpScreen({ navigation }) {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
   const [errors, setErrors] = useState({});
+
+const handleFieldChange = (field, value) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleSubmit = async () => {
     try {
-      await signUpSchema.validate(
-        { name, email, password, confirmPassword },
-        { abortEarly: false }
-      );
+      await signUpSchema.validate(form, { abortEarly: false });
       setErrors({});
       Alert.alert('Account created!');
     } catch (err) {
@@ -51,16 +54,16 @@ export default function SignUpScreen({ navigation }) {
           <Text className="mt-1 text-base text-sub">Join us to get started</Text>
           <TextField
             label="Name"
-            value={name}
-            onChangeText={setName}
+            value={form.name}
+            onChangeText={(text) => handleFieldChange('name', text)}
             placeholder="Enter Name"
             iconName="person-outline"
             error={errors.name}
           />
           <TextField
             label="Email"
-            value={email}
-            onChangeText={setEmail}
+            value={form.email}
+            onChangeText={(text) => handleFieldChange('email', text)}
             placeholder="Enter Email"
             iconName="mail-outline"
             keyboardType="email-address"
@@ -68,15 +71,15 @@ export default function SignUpScreen({ navigation }) {
           />
           <PasswordField
             label="Password"
-            value={password}
-            onChangeText={setPassword}
+            value={form.password}
+            onChangeText={(text) => handleFieldChange('password', text)}
             placeholder="Enter Password"
             error={errors.password}
           />
           <PasswordField
             label="Confirm Password"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
+            value={form.confirmPassword}
+            onChangeText={(text) => handleFieldChange('confirmPassword', text)}
             placeholder="Confirm Password"
             error={errors.confirmPassword}
           />
