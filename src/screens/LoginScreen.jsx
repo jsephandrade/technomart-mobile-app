@@ -13,7 +13,7 @@ export default function LoginScreen({ navigation }) {
   const [errors, setErrors] = useState({});
 
 const handleFieldChange = (field, value) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    setForm((prev) => ({ ...prev, [field]: value.trim() }));
   };
 
   const handleSubmit = async () => {
@@ -78,6 +78,7 @@ const handleFieldChange = (field, value) => {
             <GoogleButton onPress={() => Alert.alert('Google sign-in is not available yet')} />
             <Pressable
               className="mt-3"
+              hitSlop={8}
               onPress={() =>
                 Alert.alert(
                   'Forgot password',

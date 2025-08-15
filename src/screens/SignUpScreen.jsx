@@ -18,7 +18,7 @@ export default function SignUpScreen({ navigation }) {
   const [errors, setErrors] = useState({});
 
 const handleFieldChange = (field, value) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    setForm((prev) => ({ ...prev, [field]: value.trim() }));
   };
 
   const handleSubmit = async () => {
@@ -101,6 +101,7 @@ const handleFieldChange = (field, value) => {
             <Text className="text-sub">Already have an account? </Text>
             <Pressable
               onPress={() => navigation.navigate('Login')}
+              hitSlop={8}
               accessibilityRole="link"
               accessibilityLabel="Log In">
               <Text className="font-bold text-peach-400 underline">Log In</Text>

@@ -38,6 +38,7 @@ export default function PasswordField({
           {...rest}
         />
         <Pressable
+          hitSlop={8}
           onPress={() => setSecure(!secure)}
           accessibilityRole="button"
           accessibilityLabel={secure ? 'Show password' : 'Hide password'}
