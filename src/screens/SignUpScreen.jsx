@@ -52,7 +52,7 @@ export default function SignUpScreen({ navigation }) {
 
   return (
     <AuthLayout>
-      <View className="flex-1 items-center px-6 relative">
+      <View className="flex-1 px-6 relative">
         {/* Decorative icons in the background */}
         <MaterialCommunityIcons
           name="pizza"
@@ -73,10 +73,10 @@ export default function SignUpScreen({ navigation }) {
           style={{ position: 'absolute', top: 220, left: 80, opacity: 0.15 }}
         />
         {/* Header with logo and title */}
-        <View className="mt-20 items-center">
+        <View className="mt-20 w-full items-start">
           <Image
             source={require('../../assets/logo.png')}
-            className="h-24 w-24"
+            style={{ width: 50, height: 50 }}
             resizeMode="contain"
             accessibilityLabel="TechnoMart logo"
           />
@@ -86,82 +86,96 @@ export default function SignUpScreen({ navigation }) {
           <Text className="mt-1 text-lg text-sub">Create your account</Text>
         </View>
         {/* Form fields */}
-        <View className="w-full mt-auto pb-16 space-y-3">
-          <View className="flex-row items-center rounded-xl bg-peach-100 px-4 py-2.5">
-            <Feather name="user" size={20} color="#F07F13" />
-            <TextInput
-              className="ml-4 flex-1 text-base text-text"
-              placeholder="Enter Name"
-              placeholderTextColor="#BF7642"
-              value={name}
-              onChangeText={setName}
-            />
-          </View>
-          <View className="flex-row items-center rounded-xl bg-peach-100 px-4 py-2.5">
-            <Feather name="mail" size={20} color="#F07F13" />
-            <TextInput
-              className="ml-4 flex-1 text-base text-text"
-              placeholder="Enter Email"
-              placeholderTextColor="#BF7642"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-          </View>
-          <View className="flex-row items-center rounded-xl bg-peach-100 px-4 py-2.5">
-            <Feather name="lock" size={20} color="#F07F13" />
-            <TextInput
-              className="ml-4 flex-1 text-base text-text"
-              placeholder="Enter Password"
-              placeholderTextColor="#BF7642"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-            />
+        <View className="w-full mt-auto pb-16">
+          <View className="rounded-xl bg-[#f5f5f5] p-6 space-y-3">
+            <View>
+              <Text className="mb-1 text-sub">Name</Text>
+              <View className="flex-row items-center rounded-xl bg-peach-100 px-4 py-2.5">
+                <Feather name="user" size={20} color="#F07F13" />
+                <TextInput
+                  className="ml-4 flex-1 text-base text-text"
+                  placeholder="Enter Name"
+                  placeholderTextColor="#BF7642"
+                  value={name}
+                  onChangeText={setName}
+                />
+              </View>
+            </View>
+            <View>
+              <Text className="mb-1 text-sub">Email</Text>
+              <View className="flex-row items-center rounded-xl bg-peach-100 px-4 py-2.5">
+                <Feather name="mail" size={20} color="#F07F13" />
+                <TextInput
+                  className="ml-4 flex-1 text-base text-text"
+                  placeholder="Enter Email"
+                  placeholderTextColor="#BF7642"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
+            </View>
+            <View>
+              <Text className="mb-1 text-sub">Password</Text>
+              <View className="flex-row items-center rounded-xl bg-peach-100 px-4 py-2.5">
+                <Feather name="lock" size={20} color="#F07F13" />
+                <TextInput
+                  className="ml-4 flex-1 text-base text-text"
+                  placeholder="Enter Password"
+                  placeholderTextColor="#BF7642"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowPassword((prev) => !prev)}
+                >
+                  <Feather
+                    name={showPassword ? 'eye-off' : 'eye'}
+                    size={20}
+                    color="#F07F13"
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+            <View>
+              <Text className="mb-1 text-sub">Confirm Password</Text>
+              <View className="flex-row items-center rounded-xl bg-peach-100 px-4 py-2.5">
+                <Feather name="lock" size={20} color="#F07F13" />
+                <TextInput
+                  className="ml-4 flex-1 text-base text-text"
+                  placeholder="Confirm Password"
+                  placeholderTextColor="#BF7642"
+                  value={confirm}
+                  onChangeText={setConfirm}
+                  secureTextEntry={!showConfirm}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowConfirm((prev) => !prev)}
+                >
+                  <Feather
+                    name={showConfirm ? 'eye-off' : 'eye'}
+                    size={20}
+                    color="#F07F13"
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
             <TouchableOpacity
-              onPress={() => setShowPassword((prev) => !prev)}
+              disabled={loading}
+              onPress={handleRegister}
+              className="rounded-xl bg-peach-500 py-3"
             >
-              <Feather
-                name={showPassword ? 'eye-off' : 'eye'}
-                size={20}
-                color="#F07F13"
-              />
+              <Text className="text-center text-lg font-semibold text-white">
+                {loading ? 'Loading...' : 'Sign Up'}
+              </Text>
             </TouchableOpacity>
+            {/* Inline error message */}
+            {errorMessage ? (
+              <Text className="pt-1 text-sm text-red-500">{errorMessage}</Text>
+            ) : null}
           </View>
-          <View className="flex-row items-center rounded-xl bg-peach-100 px-4 py-2.5">
-            <Feather name="lock" size={20} color="#F07F13" />
-            <TextInput
-              className="ml-4 flex-1 text-base text-text"
-              placeholder="Confirm Password"
-              placeholderTextColor="#BF7642"
-              value={confirm}
-              onChangeText={setConfirm}
-              secureTextEntry={!showConfirm}
-            />
-            <TouchableOpacity
-              onPress={() => setShowConfirm((prev) => !prev)}
-            >
-              <Feather
-                name={showConfirm ? 'eye-off' : 'eye'}
-                size={20}
-                color="#F07F13"
-              />
-            </TouchableOpacity>
-          </View>
-          <TouchableOpacity
-            disabled={loading}
-            onPress={handleRegister}
-            className="rounded-xl bg-peach-500 py-3"
-          >
-            <Text className="text-center text-lg font-semibold text-white">
-              {loading ? 'Loading...' : 'Sign Up'}
-            </Text>
-          </TouchableOpacity>
-          {/* Inline error message */}
-          {errorMessage ? (
-            <Text className="pt-1 text-sm text-red-500">{errorMessage}</Text>
-          ) : null}
         </View>
         {/* Link back to login */}
         <View className="mt-4 flex-row justify-center">
