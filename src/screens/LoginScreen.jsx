@@ -15,6 +15,7 @@ import TextField from '../components/TextField';
 import PasswordField from '../components/PasswordField';
 import GoogleButton from '../components/GoogleButton';
 import { loginSchema } from '../utils/validation';
+import { login } from '../utils/api';
 import PrimaryButton from '../components/PrimaryButton';
 
 export default function LoginScreen({ navigation }) {
@@ -41,16 +42,8 @@ export default function LoginScreen({ navigation }) {
 
     setLoading(true);
     try {
-      const response = await fetch('https://reqres.in/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
-      }
-      Alert.alert('Logged in!', `Token: ${data.token}`);
+      const token = await login({ email, password });
+      Alert.alert('Logged in!', `Token: ${token}`);
       setEmail('');
       setPassword('');
     } catch (err) {

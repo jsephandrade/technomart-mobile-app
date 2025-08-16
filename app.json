@@ -22,6 +22,7 @@
       "**/*"
     ],
     "extra": {
+      "apiUrl": "https://reqres.in/api",
       "eas": {
         "projectId": "724f128a-e5fa-4d17-b1dc-5358de696900"
       }
