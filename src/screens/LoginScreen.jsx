@@ -76,7 +76,7 @@ export default function LoginScreen({ navigation }) {
         <View className="mt-20 w-full items-start">
           <Image
             source={require('../../assets/logo.png')}
-            style={{ width: 100, height: 100 }}
+            style={{ width: 50, height: 50 }}
             resizeMode="contain"
             accessibilityLabel="TechnoMart logo"
           />
@@ -129,33 +129,22 @@ export default function LoginScreen({ navigation }) {
               onPress={handleLogin}
               className="rounded-xl bg-peach-500 py-3"
             >
-              <Feather
-                name={showPassword ? 'eye-off' : 'eye'}
-                size={20}
-                color="#F07F13"
-              />
+              <Text className="text-center text-lg font-semibold text-white">
+                {loading ? 'Loading...' : 'Log In'}
+              </Text>
             </TouchableOpacity>
+            <TouchableOpacity className="self-end">
+              <Text className="text-sm text-peach-500">Forgot password?</Text>
+            </TouchableOpacity>
+            {/* Inline error message */}
+            {errorMessage ? (
+              <Text className="pt-1 text-sm text-red-500">{errorMessage}</Text>
+            ) : null}
           </View>
-          <TouchableOpacity
-            disabled={loading}
-            onPress={handleLogin}
-            className="rounded-xl bg-peach-500 py-3"
-          >
-            <Text className="text-center text-lg font-semibold text-white">
-              {loading ? 'Loading...' : 'Log In'}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity className="self-end">
-            <Text className="text-sm text-peach-500">Forgot password?</Text>
-          </TouchableOpacity>
-          {/* Inline error message */}
-          {errorMessage ? (
-            <Text className="pt-1 text-sm text-red-500">{errorMessage}</Text>
-          ) : null}
         </View>
         {/* Sign up link */}
         <View className="mt-4 flex-row justify-center">
-          <Text className="text-sub">Don't have an account? </Text>
+          <Text className="text-sub">Don&apos;t have an account? </Text>
           <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
             <Text className="font-semibold text-peach-500">Sign Up</Text>
           </TouchableOpacity>
