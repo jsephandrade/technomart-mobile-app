@@ -1,3 +1,4 @@
+// screens/SignUpScreen.jsx
 import React, {
   useCallback,
   useEffect,
@@ -10,7 +11,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Image,
   KeyboardAvoidingView,
   ScrollView,
   TouchableWithoutFeedback,
@@ -23,47 +23,58 @@ import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { MaterialCommunityIcons, Feather } from "@expo/vector-icons"
 import AuthLayout from "../components/AuthLayout"
 import TermsNotice from "../components/TermsNotice"
-import { register } from "../utils/auth"
+// ⬇️ Removed API for now
+// import { register } from "../utils/auth"
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default function SignUpScreen({ navigation }) {
   // --- State ---
-  const [name, setName] = useState("")
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirm, setConfirm] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
+
+  // You can keep loading in case you re-enable API later
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
 
-  // --- Touch & submit state (when to show errors) ---
-  const [nameTouched, setNameTouched] = useState(false)
+  // --- Touch & submit state ---
+  const [firstTouched, setFirstTouched] = useState(false)
+  const [lastTouched, setLastTouched] = useState(false)
   const [emailTouched, setEmailTouched] = useState(false)
   const [passwordTouched, setPasswordTouched] = useState(false)
   const [confirmTouched, setConfirmTouched] = useState(false)
   const [formSubmitted, setFormSubmitted] = useState(false)
 
   // --- Refs for focus flow ---
+  const lastNameRef = useRef(null)
   const emailRef = useRef(null)
   const passwordRef = useRef(null)
   const confirmRef = useRef(null)
 
-  // --- Safe area ---
   const insets = useSafeAreaInsets()
 
   // --- Derived, trimmed values ---
-  const trimmedName = useMemo(() => name.trim(), [name])
+  const trimmedFirst = useMemo(() => firstName.trim(), [firstName])
+  const trimmedLast = useMemo(() => lastName.trim(), [lastName])
   const trimmedEmail = useMemo(() => email.trim().toLowerCase(), [email])
   const trimmedPassword = useMemo(() => password.trim(), [password])
   const trimmedConfirm = useMemo(() => confirm.trim(), [confirm])
 
   // --- Field-level validation ---
-  const nameError = useMemo(() => {
-    if (!trimmedName) return "Please enter your name"
+  const firstError = useMemo(() => {
+    if (!trimmedFirst) return "Please enter your first name"
     return ""
-  }, [trimmedName])
+  }, [trimmedFirst])
+
+  const lastError = useMemo(() => {
+    if (!trimmedLast) return "Please enter your last name"
+    return ""
+  }, [trimmedLast])
 
   const emailError = useMemo(() => {
     if (!trimmedEmail) return "Please enter your email"
@@ -85,15 +96,17 @@ export default function SignUpScreen({ navigation }) {
   }, [trimmedConfirm, trimmedPassword])
 
   // Only show after touch or submit
-  const showNameError = nameTouched || formSubmitted ? nameError : ""
+  const showFirstError = firstTouched || formSubmitted ? firstError : ""
+  const showLastError = lastTouched || formSubmitted ? lastError : ""
   const showEmailError = emailTouched || formSubmitted ? emailError : ""
   const showPasswordError = passwordTouched || formSubmitted ? passwordError : ""
   const showConfirmError = confirmTouched || formSubmitted ? confirmError : ""
 
-  // Top-level error (server wins, else first visible field error)
+  // Top-level error (no server error now; still shows first visible field error)
   const formError =
     errorMessage ||
-    showNameError ||
+    showFirstError ||
+    showLastError ||
     showEmailError ||
     showPasswordError ||
     showConfirmError
@@ -116,29 +129,39 @@ export default function SignUpScreen({ navigation }) {
 
   const setSafeLoading = setSafeState(setLoading)
   const setSafeError = setSafeState(setErrorMessage)
-  const setSafeName = setSafeState(setName)
+  const setSafeFirstName = setSafeState(setFirstName)
+  const setSafeLastName = setSafeState(setLastName)
   const setSafeEmail = setSafeState(setEmail)
   const setSafePassword = setSafeState(setPassword)
   const setSafeConfirm = setSafeState(setConfirm)
-  const setSafeNameTouched = setSafeState(setNameTouched)
+  const setSafeFirstTouched = setSafeState(setFirstTouched)
+  const setSafeLastTouched = setSafeState(setLastTouched)
   const setSafeEmailTouched = setSafeState(setEmailTouched)
   const setSafePasswordTouched = setSafeState(setPasswordTouched)
   const setSafeConfirmTouched = setSafeState(setConfirmTouched)
   const setSafeFormSubmitted = setSafeState(setFormSubmitted)
 
-  // Clear server error as user edits
+  // Clear top-level error as user edits
   useEffect(() => {
     if (errorMessage) setSafeError("")
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [name, email, password, confirm])
+  }, [firstName, lastName, email, password, confirm])
 
   // Change handlers mark as touched
-  const handleNameChange = useCallback(
+  const handleFirstChange = useCallback(
     t => {
-      if (!nameTouched) setSafeNameTouched(true)
-      setSafeName(t)
+      if (!firstTouched) setSafeFirstTouched(true)
+      setSafeFirstName(t)
     },
-    [nameTouched, setSafeNameTouched, setSafeName]
+    [firstTouched, setSafeFirstTouched, setSafeFirstName]
+  )
+
+  const handleLastChange = useCallback(
+    t => {
+      if (!lastTouched) setSafeLastTouched(true)
+      setSafeLastName(t)
+    },
+    [lastTouched, setSafeLastTouched, setSafeLastName]
   )
 
   const handleEmailChange = useCallback(
@@ -165,74 +188,64 @@ export default function SignUpScreen({ navigation }) {
     [confirmTouched, setSafeConfirmTouched, setSafeConfirm]
   )
 
-  // --- Submit handler ---
-  const handleRegister = useCallback(async () => {
+  // --- Submit handler (NO API; just navigate on valid form) ---
+  const handleRegister = useCallback(() => {
     setSafeFormSubmitted(true)
 
-    if (nameError || emailError || passwordError || confirmError) {
-      const firstError =
-        nameError || emailError || passwordError || confirmError
-      setSafeError(firstError)
-      AccessibilityInfo.announceForAccessibility?.(firstError)
+    if (firstError || lastError || emailError || passwordError || confirmError) {
+      const firstVisibleError =
+        firstError || lastError || emailError || passwordError || confirmError
+      setSafeError(firstVisibleError)
+      AccessibilityInfo.announceForAccessibility?.(firstVisibleError)
       return
     }
     if (loading) return
 
-    setSafeError("")
-    setSafeLoading(true)
-    try {
-      await register(trimmedName, trimmedEmail, trimmedPassword)
-      AccessibilityInfo.announceForAccessibility?.(
-        "Account created successfully"
-      )
+    // No server call — go straight to success screen
+    AccessibilityInfo.announceForAccessibility?.(
+      "Account created successfully"
+    )
 
-      // Clear inputs & touch state after success
-      setSafeName("")
-      setSafeEmail("")
-      setSafePassword("")
-      setSafeConfirm("")
-      setSafeNameTouched(false)
-      setSafeEmailTouched(false)
-      setSafePasswordTouched(false)
-      setSafeConfirmTouched(false)
-      setSafeFormSubmitted(false)
+    // Clear inputs & touch state after success
+    setSafeFirstName("")
+    setSafeLastName("")
+    setSafeEmail("")
+    setSafePassword("")
+    setSafeConfirm("")
+    setSafeFirstTouched(false)
+    setSafeLastTouched(false)
+    setSafeEmailTouched(false)
+    setSafePasswordTouched(false)
+    setSafeConfirmTouched(false)
+    setSafeFormSubmitted(false)
 
-      navigation.navigate("Home")
-    } catch (err) {
-      const message =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Something went wrong. Please try again."
-      setSafeError(message)
-      AccessibilityInfo.announceForAccessibility?.(message)
-    } finally {
-      setSafeLoading(false)
-    }
+    navigation.navigate("AccountCreated", { email: trimmedEmail })
   }, [
-    nameError,
+    firstError,
+    lastError,
     emailError,
     passwordError,
     confirmError,
     loading,
-    trimmedName,
     trimmedEmail,
-    trimmedPassword,
-    navigation,
     setSafeError,
-    setSafeLoading,
-    setSafeName,
+    setSafeFirstName,
+    setSafeLastName,
     setSafeEmail,
     setSafePassword,
     setSafeConfirm,
-    setSafeNameTouched,
+    setSafeFirstTouched,
+    setSafeLastTouched,
     setSafeEmailTouched,
     setSafePasswordTouched,
     setSafeConfirmTouched,
-    setSafeFormSubmitted
+    setSafeFormSubmitted,
+    navigation,
   ])
 
   // Keyboard "next/go" flow
-  const onNameSubmit = useCallback(() => emailRef.current?.focus(), [])
+  const onFirstSubmit = useCallback(() => lastNameRef.current?.focus(), [])
+  const onLastSubmit = useCallback(() => emailRef.current?.focus(), [])
   const onEmailSubmit = useCallback(() => passwordRef.current?.focus(), [])
   const onPasswordSubmit = useCallback(() => confirmRef.current?.focus(), [])
   const onConfirmSubmit = handleRegister
@@ -262,7 +275,7 @@ export default function SignUpScreen({ navigation }) {
             contentInsetAdjustmentBehavior="always"
           >
             <View className="flex-1 relative">
-              {/* Decorative icons */}
+              {/* Decorative icons (unchanged) */}
               <View
                 accessible={false}
                 importantForAccessibility="no-hide-descendants"
@@ -301,7 +314,8 @@ export default function SignUpScreen({ navigation }) {
                   }}
                 />
               </View>
-              <View className="mt-15 pt-12"></View>
+              <View className="mt-15 pt-12" />
+
               {/* Card */}
               <View className="mt-20 w-full rounded-2xl bg-[#f5f5f5] p-6">
                 <Text
@@ -311,33 +325,65 @@ export default function SignUpScreen({ navigation }) {
                   Create your account
                 </Text>
 
-                {/* Name */}
+                {/* First/Last Name */}
                 <Text className="mt-5 mb-1 text-sub text-sm">Your Name</Text>
-                <View
-                  className={[
-                    "flex-row items-center rounded-lg px-3 py-2 border bg-white",
-                    showNameError ? "border-red-400" : "border-gray-200"
-                  ].join(" ")}
-                >
-                  <Feather name="user" size={18} color="#F07F13" />
-                  <TextInput
-                    testID="nameInput"
-                    className="ml-2 flex-1 text-sm text-text"
-                    placeholder="Enter your name"
-                    placeholderTextColor="#A3A3A3"
-                    value={name}
-                    onChangeText={handleNameChange}
-                    onBlur={() => setSafeNameTouched(true)}
-                    returnKeyType="next"
-                    onSubmitEditing={onNameSubmit}
-                    editable={inputsEditable}
-                    autoCapitalize="words"
-                    autoCorrect={false}
-                    autoComplete="name"
-                    textContentType="name"
-                    accessibilityLabel="Name"
-                    accessibilityHint="Enter your full name"
-                  />
+                <View className="flex-row" style={{ columnGap: 8 }}>
+                  {/* First name */}
+                  <View
+                    className={[
+                      "flex-1 flex-row items-center rounded-lg px-3 py-2 border bg-white",
+                      showFirstError ? "border-red-400" : "border-gray-200"
+                    ].join(" ")}
+                  >
+                    <Feather name="user" size={18} color="#F07F13" />
+                    <TextInput
+                      testID="firstNameInput"
+                      className="ml-2 flex-1 text-sm text-text"
+                      placeholder="First name"
+                      placeholderTextColor="#A3A3A3"
+                      value={firstName}
+                      onChangeText={handleFirstChange}
+                      onBlur={() => setSafeFirstTouched(true)}
+                      returnKeyType="next"
+                      onSubmitEditing={onFirstSubmit}
+                      editable={inputsEditable}
+                      autoCapitalize="words"
+                      autoCorrect={false}
+                      autoComplete="given-name"
+                      textContentType="givenName"
+                      accessibilityLabel="First name"
+                      accessibilityHint="Enter your first name"
+                    />
+                  </View>
+
+                  {/* Last name */}
+                  <View
+                    className={[
+                      "flex-1 flex-row items-center rounded-lg px-3 py-2 border bg-white",
+                      showLastError ? "border-red-400" : "border-gray-200"
+                    ].join(" ")}
+                  >
+                    <Feather name="user" size={18} color="#F07F13" />
+                    <TextInput
+                      testID="lastNameInput"
+                      ref={lastNameRef}
+                      className="ml-2 flex-1 text-sm text-text"
+                      placeholder="Last name"
+                      placeholderTextColor="#A3A3A3"
+                      value={lastName}
+                      onChangeText={handleLastChange}
+                      onBlur={() => setSafeLastTouched(true)}
+                      returnKeyType="next"
+                      onSubmitEditing={onLastSubmit}
+                      editable={inputsEditable}
+                      autoCapitalize="words"
+                      autoCorrect={false}
+                      autoComplete="family-name"
+                      textContentType="familyName"
+                      accessibilityLabel="Last name"
+                      accessibilityHint="Enter your last name"
+                    />
+                  </View>
                 </View>
 
                 {/* Email */}
@@ -484,8 +530,7 @@ export default function SignUpScreen({ navigation }) {
                     disabled={loading}
                     accessibilityRole="button"
                     accessibilityLabel="Already have an account? Log in"
-                  >
-                  </TouchableOpacity>
+                  />
                 </View>
 
                 {/* Submit */}
@@ -525,8 +570,6 @@ export default function SignUpScreen({ navigation }) {
                 <TouchableOpacity
                   className="flex-row items-center justify-center rounded-xl bg-white py-3 border border-gray-200"
                   onPress={() => {
-                    // mirror LoginScreen behavior
-                    // eslint-disable-next-line no-alert
                     alert("Google sign up not implemented in this build")
                   }}
                   disabled={loading}
@@ -541,7 +584,7 @@ export default function SignUpScreen({ navigation }) {
                   <Text className="ml-8 text-base">Sign up with Google</Text>
                 </TouchableOpacity>
 
-                {/* Bottom switch to login (inside card, like Login's Sign Up link) */}
+                {/* Bottom switch to login */}
                 <View className="mt-4 flex-row justify-center">
                   <Text className="text-sm text-gray-600">
                     Already have an account?{" "}
