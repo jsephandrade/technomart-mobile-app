@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -22,6 +22,7 @@ export default function LoginScreen({ navigation }) {
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const passwordRef = useRef(null);
 
   const handleSubmit = async () => {
     try {
@@ -85,14 +86,20 @@ export default function LoginScreen({ navigation }) {
               placeholder="Enter Email"
               iconName="mail-outline"
               keyboardType="email-address"
+              returnKeyType="next"
+              blurOnSubmit={false}
+              onSubmitEditing={() => passwordRef.current?.focus()}
               error={errors.email}
               editable={!loading}
             />
             <PasswordField
+              ref={passwordRef}
               label="Password"
               value={password}
               onChangeText={setPassword}
               placeholder="Enter Password"
+              returnKeyType="done"
+              onSubmitEditing={handleSubmit}
               error={errors.password}
               editable={!loading}
             />
