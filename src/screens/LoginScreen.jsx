@@ -1,169 +1,435 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
-  View, Text, TextInput, TouchableOpacity, Alert, Image,
-  KeyboardAvoidingView, ScrollView, TouchableWithoutFeedback, Keyboard, Platform
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { MaterialCommunityIcons, Feather, Ionicons } from '@expo/vector-icons'; // ← ADDED Ionicons for Apple icon
-import AuthLayout from '../components/AuthLayout';
-import { signIn } from '../utils/auth';
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  ScrollView,
+  TouchableWithoutFeedback,
+  Keyboard,
+  Platform,
+  ActivityIndicator,
+  AccessibilityInfo
+} from "react-native"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
+import { MaterialCommunityIcons, Feather } from "@expo/vector-icons"
+import AuthLayout from "../components/AuthLayout"
+import TermsNotice from "../components/TermsNotice"
+import { signIn } from "../utils/auth"
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default function LoginScreen({ navigation }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const insets = useSafeAreaInsets?.() || { top: 0, bottom: 0 };
+  // --- State ---
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
 
-  const handleLogin = async () => {
-    if (!email.trim() || !password.trim()) {
-      if (!email.trim() && !password.trim()) setErrorMessage('Please enter email and password');
-      else if (!email.trim()) setErrorMessage('Please enter your email');
-      else setErrorMessage('Please enter your password');
-      return;
+  // --- Touch & submit state (controls when to show errors) ---
+  const [emailTouched, setEmailTouched] = useState(false)
+  const [passwordTouched, setPasswordTouched] = useState(false)
+  const [formSubmitted, setFormSubmitted] = useState(false)
+
+  // --- Refs for focus management ---
+  const passwordRef = useRef(null)
+
+  // --- Safe area ---
+  const insets = useSafeAreaInsets()
+
+  // --- Derived validation state ---
+  const trimmedEmail = useMemo(() => email.trim().toLowerCase(), [email])
+  const trimmedPassword = useMemo(() => password.trim(), [password])
+
+  const emailError = useMemo(() => {
+    if (!trimmedEmail) return "Please enter your email"
+    if (!emailRegex.test(trimmedEmail)) return "Please enter a valid email"
+    return ""
+  }, [trimmedEmail])
+
+  const passwordError = useMemo(() => {
+    if (!trimmedPassword) return "Please enter your password"
+    if (trimmedPassword.length < 6)
+      return "Password must be at least 6 characters"
+    return ""
+  }, [trimmedPassword])
+
+  // Only show field errors after touch or submit
+  const showEmailError = emailTouched || formSubmitted ? emailError : ""
+  const showPasswordError =
+    passwordTouched || formSubmitted ? passwordError : ""
+
+  // Top-level inline error (server error wins; otherwise first visible field error)
+  const formError = errorMessage || showEmailError || showPasswordError
+
+  // --- Prevent setState on unmounted component ---
+  const mountedRef = useRef(true)
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
     }
-    setErrorMessage('');
-    setLoading(true);
+  }, [])
+
+  const setSafeState = useCallback(
+    setter => value => {
+      if (mountedRef.current) setter(value)
+    },
+    []
+  )
+
+  const setSafeLoading = setSafeState(setLoading)
+  const setSafeError = setSafeState(setErrorMessage)
+  const setSafeEmail = setSafeState(setEmail)
+  const setSafePassword = setSafeState(setPassword)
+  const setSafeEmailTouched = setSafeState(setEmailTouched)
+  const setSafePasswordTouched = setSafeState(setPasswordTouched)
+  const setSafeFormSubmitted = setSafeState(setFormSubmitted)
+
+  // Clear server error as user edits
+  useEffect(() => {
+    if (errorMessage) setSafeError("")
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [email, password])
+
+  // Change handlers mark fields as touched
+  const handleEmailChange = useCallback(
+    t => {
+      if (!emailTouched) setSafeEmailTouched(true)
+      setSafeEmail(t)
+    },
+    [emailTouched, setSafeEmailTouched, setSafeEmail]
+  )
+
+  const handlePasswordChange = useCallback(
+    t => {
+      if (!passwordTouched) setSafePasswordTouched(true)
+      setSafePassword(t)
+    },
+    [passwordTouched, setSafePasswordTouched, setSafePassword]
+  )
+
+  // --- Submit handler ---
+  const handleLogin = useCallback(async () => {
+    // Mark form submitted to reveal errors (if any)
+    setSafeFormSubmitted(true)
+
+    // Early validation (no network call if invalid)
+    if (emailError || passwordError) {
+      const firstError = emailError || passwordError
+      setSafeError(firstError)
+      AccessibilityInfo.announceForAccessibility?.(firstError)
+      return
+    }
+    if (loading) return // guard against accidental double-press
+
+    setSafeError("")
+    setSafeLoading(true)
+
     try {
-      const token = await signIn(email, password);
-      Alert.alert('Welcome', `Token: ${token}`);
-      setEmail('');
-      setPassword('');
+      await signIn(trimmedEmail, trimmedPassword)
+      AccessibilityInfo.announceForAccessibility?.("Logged in successfully")
+
+      // Clear inputs & touch state after success
+      setSafeEmail("")
+      setSafePassword("")
+      setSafeEmailTouched(false)
+      setSafePasswordTouched(false)
+      setSafeFormSubmitted(false)
+
+      navigation.navigate("Home")
     } catch (err) {
-      setErrorMessage(err.message || 'Something went wrong');
+      const message =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Something went wrong. Please try again."
+      setSafeError(message)
+      AccessibilityInfo.announceForAccessibility?.(message)
     } finally {
-      setLoading(false);
+      setSafeLoading(false)
     }
-  };
+  }, [
+    emailError,
+    passwordError,
+    loading,
+    trimmedEmail,
+    trimmedPassword,
+    navigation,
+    setSafeError,
+    setSafeLoading,
+    setSafeEmail,
+    setSafePassword,
+    setSafeEmailTouched,
+    setSafePasswordTouched,
+    setSafeFormSubmitted
+  ])
+
+  // Allow pressing "Enter/Go" on the keyboard to submit
+  const onEmailSubmit = useCallback(() => passwordRef.current?.focus(), [])
+  const onPasswordSubmit = handleLogin
+
+  const inputsEditable = !loading
 
   return (
     <AuthLayout>
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.select({ ios: insets.top, android: 0 })}
+        keyboardVerticalOffset={Platform.select({
+          ios: insets.top,
+          android: 0
+        })}
       >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
           <ScrollView
             contentContainerStyle={{
               flexGrow: 1,
               paddingHorizontal: 24,
-              paddingBottom: 10,          // keep only ~10px gap above keyboard
-              justifyContent: 'center',   // ← CENTER the whole stack vertically like the mock
+              paddingBottom: 10,
+              justifyContent: "center"
             }}
             keyboardShouldPersistTaps="handled"
+            automaticallyAdjustKeyboardInsets
+            contentInsetAdjustmentBehavior="always"
           >
             <View className="flex-1 relative">
-              {/* (optional) Decorative icons */}
-              <MaterialCommunityIcons name="pizza" size={96} color="#FFC999"
-                style={{ position: 'absolute', top: 40, left: 20, opacity: 0.15 }} />
-              <MaterialCommunityIcons name="french-fries" size={96} color="#FFC999"
-                style={{ position: 'absolute', top: 120, right: 20, opacity: 0.15 }} />
-              <MaterialCommunityIcons name="cup" size={96} color="#FFC999"
-                style={{ position: 'absolute', top: 220, left: 80, opacity: 0.15 }} />
-
-              {/* Centered logo */}
-              <View className="pt-10 mt-20 w-full items-center mb-4">{/* reduced spacing so layout stays tight */}
-                <Image
-                  source={require('../../assets/logo.png')}
-                  style={{ width: 120, height: 120 }}
-                  resizeMode="contain"
+              {/* Decorative icons */}
+              <View
+                accessible={false}
+                importantForAccessibility="no-hide-descendants"
+              >
+                <MaterialCommunityIcons
+                  name="pizza"
+                  size={96}
+                  color="#FFC999"
+                  style={{
+                    position: "absolute",
+                    top: 40,
+                    left: 20,
+                    opacity: 0.15
+                  }}
+                />
+                <MaterialCommunityIcons
+                  name="french-fries"
+                  size={96}
+                  color="#FFC999"
+                  style={{
+                    position: "absolute",
+                    top: 120,
+                    right: 20,
+                    opacity: 0.15
+                  }}
+                />
+                <MaterialCommunityIcons
+                  name="cup"
+                  size={96}
+                  color="#FFC999"
+                  style={{
+                    position: "absolute",
+                    top: 220,
+                    left: 80,
+                    opacity: 0.15
+                  }}
                 />
               </View>
 
-              {/* CARD (dirty white) — matches the structure of your screenshot */}
+              <View className="pt-10 mt-20 w-full items-center mb-4">
+                <Image
+                  source={require("../../assets/logo.png")}
+                  style={{ width: 120, height: 120 }}
+                  resizeMode="contain"
+                  accessibilityRole="image"
+                  accessibilityLabel="App logo"
+                />
+              </View>
+
               <View className="mt-10 w-full rounded-2xl bg-[#f5f5f5] p-6">
-                {/* Title inside the card */}
-                <Text className="text-2xl font-bold text-sub">Log in to your account</Text>
+                <Text
+                  className="text-2xl font-bold text-sub"
+                  accessibilityRole="header"
+                >
+                  Log in to your account
+                </Text>
 
                 {/* Email */}
                 <Text className="mt-5 mb-1 text-sub text-sm">Your Email</Text>
-                <View className="flex-row items-center rounded-lg bg-white px-3 py-2 border border-gray-200">
-                  <Feather name="mail" size={18} color="#F07F13" /> {/* smaller icon */}
+                <View
+                  className={[
+                    "flex-row items-center rounded-lg px-3 py-2 border bg-white",
+                    showEmailError ? "border-red-400" : "border-gray-200"
+                  ].join(" ")}
+                >
+                  <Feather name="mail" size={18} color="#F07F13" />
                   <TextInput
-                    className="ml-2 flex-1 text-sm text-text" // smaller text
+                    testID="emailInput"
+                    className="ml-2 flex-1 text-sm text-text"
                     placeholder="Enter your email"
                     placeholderTextColor="#A3A3A3"
                     value={email}
-                    onChangeText={setEmail}
+                    onChangeText={handleEmailChange}
+                    onBlur={() => setSafeEmailTouched(true)}
                     keyboardType="email-address"
                     autoCapitalize="none"
+                    autoCorrect={false}
+                    autoComplete="email"
+                    textContentType="emailAddress"
                     returnKeyType="next"
+                    onSubmitEditing={onEmailSubmit}
+                    editable={inputsEditable}
+                    importantForAutofill="yes"
+                    accessibilityLabel="Email"
+                    accessibilityHint="Enter your email address"
                   />
                 </View>
 
                 {/* Password */}
-                <Text className="mt-3 mb-1 text-sub text-sm">Password</Text>
+                <Text className="mt-3 mb-1 text-sub text-sm">
+                  Your Password
+                </Text>
                 <View
-                  className={`flex-row items-center rounded-lg px-3 py-2 border ${errorMessage ? 'border-red-400 bg-white' : 'border-gray-200 bg-white'
-                    }`}
+                  className={[
+                    "flex-row items-center rounded-lg px-3 py-2 border bg-white",
+                    showPasswordError ? "border-red-400" : "border-gray-200"
+                  ].join(" ")}
                 >
-                  <Feather name="lock" size={18} color="#F07F13" /> {/* smaller icon */}
+                  <Feather name="lock" size={18} color="#F07F13" />
                   <TextInput
+                    testID="passwordInput"
+                    ref={passwordRef}
                     className="ml-2 flex-1 text-sm text-text"
                     placeholder="Enter your password"
                     placeholderTextColor="#A3A3A3"
                     value={password}
-                    onChangeText={setPassword}
+                    onChangeText={handlePasswordChange}
+                    onBlur={() => setSafePasswordTouched(true)}
                     secureTextEntry={!showPassword}
-                    returnKeyType="done"
+                    returnKeyType="go"
+                    onSubmitEditing={onPasswordSubmit}
+                    editable={inputsEditable}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    autoComplete="password"
+                    textContentType="password"
+                    accessibilityLabel="Password"
+                    accessibilityHint="Enter your password"
                   />
-                  <TouchableOpacity onPress={() => setShowPassword(p => !p)}>
-                    <Feather name={showPassword ? 'eye' : 'eye-off'} size={18} color="#A3A3A3" />
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      showPassword ? "Hide password" : "Show password"
+                    }
+                    onPress={() => setShowPassword(p => !p)}
+                    disabled={!inputsEditable}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Feather
+                      name={showPassword ? "eye" : "eye-off"}
+                      size={18}
+                      color="#A3A3A3"
+                    />
                   </TouchableOpacity>
                 </View>
 
-                {/* Error (left) + Forgot password (right) — same row like the mock */}
+                {/* Inline errors */}
                 <View className="mt-2 flex-row items-center justify-between">
-                  <Text className="text-xs text-red-500">
-                    {errorMessage ? errorMessage : ' '}{/* reserve line height even if no error */}
+                  <Text
+                    testID="errorText"
+                    className="text-xs text-red-500 flex-1"
+                    accessibilityLiveRegion="polite"
+                    accessibilityRole="text"
+                  >
+                    {formError ? formError : " "}
                   </Text>
-                  <TouchableOpacity>
-                    <Text className="text-sm text-peach-500">Forgot password?</Text>
+
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate("ForgotPassword")}
+                    disabled={loading}
+                    accessibilityRole="button"
+                    accessibilityLabel="Forgot password"
+                  >
+                    <Text className="text-sm text-peach-500">
+                      Forgot password?
+                    </Text>
                   </TouchableOpacity>
                 </View>
 
-                {/* Primary button */}
+                {/* Submit */}
                 <TouchableOpacity
+                  testID="continueButton"
                   disabled={loading}
                   onPress={handleLogin}
-                  className="mt-2 rounded-xl bg-peach-500 py-3"
+                  className={[
+                    "mt-2 rounded-xl py-3",
+                    loading ? "bg-peach-300" : "bg-peach-500"
+                  ].join(" ")}
+                  accessibilityRole="button"
+                  accessibilityLabel="Continue"
                 >
-                  <Text className="text-center text-lg font-semibold text-white">
-                    {loading ? 'Loading...' : 'Continue'}
-                  </Text>
+                  {loading ? (
+                    <View className="flex-row items-center justify-center">
+                      <ActivityIndicator />
+                      <Text className="ml-2 text-center text-lg font-semibold text-white">
+                        Logging in…
+                      </Text>
+                    </View>
+                  ) : (
+                    <Text className="text-center text-lg font-semibold text-white">
+                      Continue
+                    </Text>
+                  )}
                 </TouchableOpacity>
 
-                {/* Divider with "Or" */}
+                {/* Divider */}
                 <View className="my-5 flex-row items-center">
                   <View className="flex-1 h-[1px] bg-gray-300" />
                   <Text className="mx-3 text-gray-400">Or</Text>
                   <View className="flex-1 h-[1px] bg-gray-300" />
                 </View>
 
-                {/* Social buttons */}
+                {/* Google */}
                 <TouchableOpacity
                   className="flex-row items-center justify-center rounded-xl bg-white py-3 border border-gray-200"
-                  onPress={() => Alert.alert('Google login', 'Stub')}
+                  onPress={() =>
+                    Alert.alert("Google login", "Not implemented in this build")
+                  }
+                  disabled={loading}
+                  accessibilityRole="button"
+                  accessibilityLabel="Login with Google"
                 >
-                  <MaterialCommunityIcons name="google" size={20} color="#DB4437" />
+                  <MaterialCommunityIcons
+                    name="google"
+                    size={20}
+                    color="#DB4437"
+                  />
                   <Text className="ml-8 text-base">Login with Google</Text>
                 </TouchableOpacity>
 
-                {/* Footer sign up
-                <View className="mt-6 flex-row justify-center">
-                  <Text className="text-gray-500">Don&apos;t have an account? </Text>
-                  <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
-                    <Text className="font-semibold text-peach-500">Sign up</Text>
+                {/* Sign up */}
+                <View className="mt-4 flex-row justify-center">
+                  <Text className="text-sm text-gray-600">
+                    Don&apos;t have an account?{" "}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate("SignUp")}
+                    disabled={loading}
+                    accessibilityRole="button"
+                    accessibilityLabel="Sign up"
+                  >
+                    <Text className="text-sm font-semibold text-peach-500">
+                      Sign Up
+                    </Text>
                   </TouchableOpacity>
-                </View> */}
+                </View>
               </View>
+              <TermsNotice />
             </View>
           </ScrollView>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
     </AuthLayout>
-  );
+  )
 }
-
