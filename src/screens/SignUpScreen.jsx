@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, Image } from 'react-native';
 import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import AuthLayout from '../components/AuthLayout';
 import { register } from '../utils/auth';
@@ -20,15 +20,19 @@ export default function SignUpScreen({ navigation }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleRegister = async () => {
-    if (!name.trim() || !email.trim() || !password || password !== confirm) {
-      Alert.alert(
-        'Invalid input',
-        'Please fill all fields and ensure passwords match.'
-      );
+    // basic validation for sign up inputs; show inline errors instead of alerts
+    if (!name.trim() || !email.trim() || !password.trim() || !confirm.trim()) {
+      setErrorMessage('Please fill out all fields');
       return;
     }
+    if (password !== confirm) {
+      setErrorMessage('Passwords do not match');
+      return;
+    }
+    setErrorMessage('');
     setLoading(true);
     try {
       const id = await register(name, email, password);
@@ -40,7 +44,7 @@ export default function SignUpScreen({ navigation }) {
       setPassword('');
       setConfirm('');
     } catch (err) {
-      Alert.alert('Registration failed', err.message);
+      setErrorMessage(err.message);
     } finally {
       setLoading(false);
     }
@@ -69,11 +73,12 @@ export default function SignUpScreen({ navigation }) {
           style={{ position: 'absolute', top: 220, left: 80, opacity: 0.15 }}
         />
         {/* Header with logo and title */}
-        <View className="mt-24 items-center">
-          <MaterialCommunityIcons
-            name="storefront-outline"
-            size={64}
-            color="#F07F13"
+        <View className="mt-20 items-center">
+          <Image
+            source={require('../../assets/logo.png')}
+            className="h-24 w-24"
+            resizeMode="contain"
+            accessibilityLabel="TechnoMart logo"
           />
           <Text className="mt-2 text-3xl font-extrabold text-peach-500">
             Join TechnoMart
@@ -81,8 +86,8 @@ export default function SignUpScreen({ navigation }) {
           <Text className="mt-1 text-lg text-sub">Create your account</Text>
         </View>
         {/* Form fields */}
-        <View className="w-full mt-20 space-y-4">
-          <View className="flex-row items-center rounded-xl bg-peach-100 px-4 py-3">
+        <View className="w-full mt-auto pb-16 space-y-3">
+          <View className="flex-row items-center rounded-xl bg-peach-100 px-4 py-2.5">
             <Feather name="user" size={20} color="#F07F13" />
             <TextInput
               className="ml-4 flex-1 text-base text-text"
@@ -92,7 +97,7 @@ export default function SignUpScreen({ navigation }) {
               onChangeText={setName}
             />
           </View>
-          <View className="flex-row items-center rounded-xl bg-peach-100 px-4 py-3">
+          <View className="flex-row items-center rounded-xl bg-peach-100 px-4 py-2.5">
             <Feather name="mail" size={20} color="#F07F13" />
             <TextInput
               className="ml-4 flex-1 text-base text-text"
@@ -104,7 +109,7 @@ export default function SignUpScreen({ navigation }) {
               autoCapitalize="none"
             />
           </View>
-          <View className="flex-row items-center rounded-xl bg-peach-100 px-4 py-3">
+          <View className="flex-row items-center rounded-xl bg-peach-100 px-4 py-2.5">
             <Feather name="lock" size={20} color="#F07F13" />
             <TextInput
               className="ml-4 flex-1 text-base text-text"
@@ -124,7 +129,7 @@ export default function SignUpScreen({ navigation }) {
               />
             </TouchableOpacity>
           </View>
-          <View className="flex-row items-center rounded-xl bg-peach-100 px-4 py-3">
+          <View className="flex-row items-center rounded-xl bg-peach-100 px-4 py-2.5">
             <Feather name="lock" size={20} color="#F07F13" />
             <TextInput
               className="ml-4 flex-1 text-base text-text"
@@ -153,9 +158,13 @@ export default function SignUpScreen({ navigation }) {
               {loading ? 'Loading...' : 'Sign Up'}
             </Text>
           </TouchableOpacity>
+          {/* Inline error message */}
+          {errorMessage ? (
+            <Text className="pt-1 text-sm text-red-500">{errorMessage}</Text>
+          ) : null}
         </View>
         {/* Link back to login */}
-        <View className="mt-8 flex-row justify-center">
+        <View className="mt-4 flex-row justify-center">
           <Text className="text-sub">Already have an account? </Text>
           <TouchableOpacity onPress={() => navigation.navigate('Login')}>
             <Text className="font-semibold text-peach-500">Log In</Text>
