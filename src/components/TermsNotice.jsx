@@ -9,7 +9,7 @@ export default function TermsNotice() {
   }
 
   return (
-    <View className="mt-10 items-center px-4">
+    <View className="mt-5 items-center px-4">
       <Text className="text-xs text-gray-500 text-center">
         By using TechoMart, you agree to the{" "}
         <Text>
