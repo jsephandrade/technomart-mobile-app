@@ -21,6 +21,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { MaterialCommunityIcons, Feather } from "@expo/vector-icons"
 import AuthLayout from "../components/AuthLayout"
 import TermsNotice from "../components/TermsNotice"
+import FaceScanScreen from "./FaceScanScreen"
 import { signIn } from "../utils/auth"
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -285,7 +286,7 @@ export default function LoginScreen({ navigation }) {
             >
               <View className="flex-1 relative">
                 {/* Logo */}
-                <View className="pt-5 mt-20 w-full items-center mb-4">
+                <View className="pt-3 mt-10 w-full items-center mb-4">
                   <Image
                     source={require("../../assets/logo.png")}
                     style={{ width: 120, height: 120 }}
@@ -436,6 +437,16 @@ export default function LoginScreen({ navigation }) {
                     <Text className="mx-3 text-gray-400">Or</Text>
                     <View className="flex-1 h-[1px] bg-gray-300" />
                   </View>
+
+                  <TouchableOpacity
+  className="flex-row items-center justify-center rounded-xl bg-white py-3 border border-gray-200"
+  onPress={() => navigation.navigate("FaceScan", { autoPrompt: true })}
+  accessibilityRole="button"
+  accessibilityLabel="Login with Face"
+>
+  <MaterialCommunityIcons name="face-recognition" size={20} color="#F07F13" />
+  <Text className="ml-8 text-base">Login with Face</Text>
+</TouchableOpacity>
 
                   {/* Google */}
                   <TouchableOpacity

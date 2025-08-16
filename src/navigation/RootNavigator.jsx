@@ -1,17 +1,13 @@
-import React from 'react';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import SplashScreen from '../screens/SplashScreen';
-import LoginScreen from '../screens/LoginScreen';
-import SignUpScreen from '../screens/SignUpScreen';
-import AccountCreatedScreen from '../screens/AccountCreatedScreen';
-import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
+import React from 'react'
+import { createNativeStackNavigator } from '@react-navigation/native-stack'
+import SplashScreen from '../screens/SplashScreen'
+import LoginScreen from '../screens/LoginScreen'
+import SignUpScreen from '../screens/SignUpScreen'
+import AccountCreatedScreen from '../screens/AccountCreatedScreen'
+import ForgotPasswordScreen from '../screens/ForgotPasswordScreen'
+import FaceScanScreen from '../screens/FaceScanScreen' // make sure this path is correct
 
-/**
- * Auth stack with a splash intro.
- * - Splash -> Login -> SignUp
- * - Headers are hidden for all screens.
- */
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator()
 
 export default function RootNavigator() {
   return (
@@ -21,6 +17,7 @@ export default function RootNavigator() {
       <Stack.Screen name="SignUp" component={SignUpScreen} />
       <Stack.Screen name="AccountCreated" component={AccountCreatedScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+      <Stack.Screen name="FaceScan" component={FaceScanScreen} />
     </Stack.Navigator>
-  );
+  )
 }

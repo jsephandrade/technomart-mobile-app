@@ -30,7 +30,9 @@
     "android": {
       "package": "com.joseph224.technomartmobileapp",
       "softwareKeyboardLayoutMode": "pan",
-      "windowSoftInputMode": "adjustResize"
+      "windowSoftInputMode": "adjustResize",
+      "permissions": ["CAMERA"],
+      "blockedPermissions": []
     },
     "owner": "joseph224"
   }
