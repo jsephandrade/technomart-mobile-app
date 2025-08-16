@@ -1,26 +1,39 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import AuthLayout from '../components/AuthLayout';
 import { register } from '../utils/auth';
 
+/**
+ * A sign‑up screen inspired by the new design mockup.
+ *
+ * This screen follows the same warm colour palette and decorative background
+ * elements as the login screen. Input fields include icons for clarity and
+ * password fields allow toggling visibility. At the bottom a link back to the
+ * login screen encourages existing users to switch contexts easily.
+ */
 export default function SignUpScreen({ navigation }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
     if (!name.trim() || !email.trim() || !password || password !== confirm) {
-      Alert.alert('Invalid input', 'Please fill all fields and ensure passwords match.');
+      Alert.alert(
+        'Invalid input',
+        'Please fill all fields and ensure passwords match.'
+      );
       return;
     }
-
     setLoading(true);
     try {
       const id = await register(name, email, password);
       Alert.alert('Account created', `User ID: ${id}`, [
-        { text: 'OK', onPress: () => navigation.navigate('Login') },
+        { text: 'OK', onPress: () => navigation.navigate('Login') }
       ]);
       setName('');
       setEmail('');
@@ -35,49 +48,119 @@ export default function SignUpScreen({ navigation }) {
 
   return (
     <AuthLayout>
-      <View className="mb-8">
-        <Text className="text-center text-3xl font-bold text-black">Join TechnoMart</Text>
-      </View>
-      <View className="gap-4">
-        <TextInput
-          className="rounded border border-gray-300 p-3"
-          placeholder="Name"
-          value={name}
-          onChangeText={setName}
+      <View className="flex-1 items-center px-6 relative">
+        {/* Decorative icons in the background */}
+        <MaterialCommunityIcons
+          name="pizza"
+          size={96}
+          color="#FFC999"
+          style={{ position: 'absolute', top: 40, left: 20, opacity: 0.15 }}
         />
-        <TextInput
-          className="rounded border border-gray-300 p-3"
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
+        <MaterialCommunityIcons
+          name="french-fries"
+          size={96}
+          color="#FFC999"
+          style={{ position: 'absolute', top: 120, right: 20, opacity: 0.15 }}
         />
-        <TextInput
-          className="rounded border border-gray-300 p-3"
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
+        <MaterialCommunityIcons
+          name="cup"
+          size={96}
+          color="#FFC999"
+          style={{ position: 'absolute', top: 220, left: 80, opacity: 0.15 }}
         />
-        <TextInput
-          className="rounded border border-gray-300 p-3"
-          placeholder="Confirm Password"
-          value={confirm}
-          onChangeText={setConfirm}
-          secureTextEntry
-        />
-        <TouchableOpacity
-          className="mt-2 rounded bg-green-500 p-3"
-          onPress={handleRegister}
-          disabled={loading}>
-          <Text className="text-center font-semibold text-white">
-            {loading ? 'Loading...' : 'Sign Up'}
+        {/* Header with logo and title */}
+        <View className="mt-24 items-center">
+          <MaterialCommunityIcons
+            name="storefront-outline"
+            size={64}
+            color="#F07F13"
+          />
+          <Text className="mt-2 text-3xl font-extrabold text-peach-500">
+            Join TechnoMart
           </Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Login')} className="pt-2">
-          <Text className="text-center text-blue-600">Back to login</Text>
-        </TouchableOpacity>
+          <Text className="mt-1 text-lg text-sub">Create your account</Text>
+        </View>
+        {/* Form fields */}
+        <View className="w-full mt-20 space-y-4">
+          <View className="flex-row items-center rounded-xl bg-peach-100 px-4 py-3">
+            <Feather name="user" size={20} color="#F07F13" />
+            <TextInput
+              className="ml-4 flex-1 text-base text-text"
+              placeholder="Enter Name"
+              placeholderTextColor="#BF7642"
+              value={name}
+              onChangeText={setName}
+            />
+          </View>
+          <View className="flex-row items-center rounded-xl bg-peach-100 px-4 py-3">
+            <Feather name="mail" size={20} color="#F07F13" />
+            <TextInput
+              className="ml-4 flex-1 text-base text-text"
+              placeholder="Enter Email"
+              placeholderTextColor="#BF7642"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+          </View>
+          <View className="flex-row items-center rounded-xl bg-peach-100 px-4 py-3">
+            <Feather name="lock" size={20} color="#F07F13" />
+            <TextInput
+              className="ml-4 flex-1 text-base text-text"
+              placeholder="Enter Password"
+              placeholderTextColor="#BF7642"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+            />
+            <TouchableOpacity
+              onPress={() => setShowPassword((prev) => !prev)}
+            >
+              <Feather
+                name={showPassword ? 'eye-off' : 'eye'}
+                size={20}
+                color="#F07F13"
+              />
+            </TouchableOpacity>
+          </View>
+          <View className="flex-row items-center rounded-xl bg-peach-100 px-4 py-3">
+            <Feather name="lock" size={20} color="#F07F13" />
+            <TextInput
+              className="ml-4 flex-1 text-base text-text"
+              placeholder="Confirm Password"
+              placeholderTextColor="#BF7642"
+              value={confirm}
+              onChangeText={setConfirm}
+              secureTextEntry={!showConfirm}
+            />
+            <TouchableOpacity
+              onPress={() => setShowConfirm((prev) => !prev)}
+            >
+              <Feather
+                name={showConfirm ? 'eye-off' : 'eye'}
+                size={20}
+                color="#F07F13"
+              />
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity
+            disabled={loading}
+            onPress={handleRegister}
+            className="rounded-xl bg-peach-500 py-3"
+          >
+            <Text className="text-center text-lg font-semibold text-white">
+              {loading ? 'Loading...' : 'Sign Up'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        {/* Link back to login */}
+        <View className="mt-8 flex-row justify-center">
+          <Text className="text-sub">Already have an account? </Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+            <Text className="font-semibold text-peach-500">Log In</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </AuthLayout>
   );

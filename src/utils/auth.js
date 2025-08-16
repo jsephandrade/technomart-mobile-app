@@ -1,3 +1,5 @@
+// Utility functions for handling authentication API requests.
+
 const API_URL = 'https://reqres.in/api';
 
 export async function signIn(email, password) {
