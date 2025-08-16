@@ -1,49 +1,31 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import {
+  SafeAreaView,
   View,
   Text,
-  Image,
-  Pressable,
+  TextInput,
+  TouchableOpacity,
   Alert,
   KeyboardAvoidingView,
-  ScrollView,
   Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import AuthCard from '../components/AuthCard';
-import TextField from '../components/TextField';
-import PasswordField from '../components/PasswordField';
-import GoogleButton from '../components/GoogleButton';
-import { loginSchema } from '../utils/validation';
-import { login } from '../utils/api';
-import PrimaryButton from '../components/PrimaryButton';
+import { signIn } from '../utils/auth';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const passwordRef = useRef(null);
 
-  const handleSubmit = async () => {
-    try {
-      await loginSchema.validate({ email, password }, { abortEarly: false });
-      setErrors({});
-    } catch (err) {
-      const formErrors = {};
-      if (err.inner) {
-        err.inner.forEach((e) => {
-          formErrors[e.path] = e.message;
-        });
-      }
-      setErrors(formErrors);
+  const handleLogin = async () => {
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Missing fields', 'Please enter email and password');
       return;
     }
 
     setLoading(true);
     try {
-      const token = await login({ email, password });
-      Alert.alert('Logged in!', `Token: ${token}`);
+      const token = await signIn(email, password);
+      Alert.alert('Welcome', `Token: ${token}`);
       setEmail('');
       setPassword('');
     } catch (err) {
@@ -54,74 +36,43 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-peach-100">
+    <SafeAreaView className="flex-1 bg-white">
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1">
-        <ScrollView
-          contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}>
-          <View className="mb-6 items-center">
-            <Image
-              source={require('../../assets/logo.png')}
-              className="h-24 w-40"
-              resizeMode="contain"
-            />
-          </View>
-          <AuthCard>
-            <Text className="text-4xl font-bold text-text">Hello</Text>
-            <Text className="mt-1 text-base text-sub">Sign in to continue</Text>
-            <TextField
-              label="Email"
-              value={email}
-              onChangeText={setEmail}
-              placeholder="Enter Email"
-              iconName="mail-outline"
-              keyboardType="email-address"
-              returnKeyType="next"
-              blurOnSubmit={false}
-              onSubmitEditing={() => passwordRef.current?.focus()}
-              error={errors.email}
-              editable={!loading}
-            />
-            <PasswordField
-              ref={passwordRef}
-              label="Password"
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Enter Password"
-              returnKeyType="done"
-              onSubmitEditing={handleSubmit}
-              error={errors.password}
-              editable={!loading}
-            />
-            <PrimaryButton
-              title="Log In"
-              onPress={handleSubmit}
-              accessibilityLabel="Log in"
-              className="mt-6"
-              loading={loading}
-            />
-            <GoogleButton onPress={() => Alert.alert('Google sign-in is not available yet')} />
-            <Pressable
-              className="mt-3"
-              onPress={() => {}}
-              accessibilityRole="link"
-              accessibilityLabel="Forgot password">
-              <Text className="text-center text-peach-400 underline">Forgot password?</Text>
-            </Pressable>
-          </AuthCard>
-          <View className="mt-6 flex-row justify-center">
-            <Text className="text-sub">Don’t have an account? </Text>
-            <Pressable
-              onPress={() => navigation.navigate('SignUp')}
-              accessibilityRole="link"
-              accessibilityLabel="Sign Up">
-              <Text className="font-bold text-peach-400 underline">Sign Up</Text>
-            </Pressable>
-          </View>
-        </ScrollView>
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        className="flex-1 justify-center p-6">
+        <View className="mb-8">
+          <Text className="text-3xl font-bold text-center text-black">TechnoMart</Text>
+        </View>
+        <View className="gap-4">
+          <TextInput
+            className="rounded border border-gray-300 p-3"
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          <TextInput
+            className="rounded border border-gray-300 p-3"
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+          <TouchableOpacity
+            className="mt-2 rounded bg-blue-500 p-3"
+            onPress={handleLogin}
+            disabled={loading}>
+            <Text className="text-center font-semibold text-white">
+              {loading ? 'Loading...' : 'Log In'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('SignUp')}
+            className="pt-2">
+            <Text className="text-center text-blue-600">Create an account</Text>
+          </TouchableOpacity>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
