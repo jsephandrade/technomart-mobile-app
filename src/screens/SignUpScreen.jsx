@@ -1,69 +1,39 @@
 import React, { useState } from 'react';
 import {
+  SafeAreaView,
   View,
   Text,
-  Image,
-  Pressable,
+  TextInput,
+  TouchableOpacity,
   Alert,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import AuthCard from '../components/AuthCard';
-import TextField from '../components/TextField';
-import PasswordField from '../components/PasswordField';
-import GoogleButton from '../components/GoogleButton';
-import { signUpSchema } from '../utils/validation';
-import PrimaryButton from '../components/PrimaryButton';
+import { register } from '../utils/auth';
 
 export default function SignUpScreen({ navigation }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [errors, setErrors] = useState({});
+  const [confirm, setConfirm] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async () => {
-    try {
-      await signUpSchema.validate(
-        { name, email, password, confirmPassword },
-        { abortEarly: false }
-      );
-      setErrors({});
-    } catch (err) {
-      const formErrors = {};
-      if (err.inner) {
-        err.inner.forEach((e) => {
-          formErrors[e.path] = e.message;
-        });
-      }
-      setErrors(formErrors);
+  const handleRegister = async () => {
+    if (!name.trim() || !email.trim() || !password || password !== confirm) {
+      Alert.alert('Invalid input', 'Please fill all fields and ensure passwords match.');
       return;
     }
 
     setLoading(true);
     try {
-      const response = await fetch('https://reqres.in/api/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Registration failed');
-      }
-      Alert.alert('Account created!', `ID: ${data.id}`, [
-        {
-          text: 'OK',
-          onPress: () => navigation.navigate('Login'),
-        },
+      const id = await register(name, email, password);
+      Alert.alert('Account created', `User ID: ${id}`, [
+        { text: 'OK', onPress: () => navigation.navigate('Login') }
       ]);
       setName('');
       setEmail('');
       setPassword('');
-      setConfirmPassword('');
+      setConfirm('');
     } catch (err) {
       Alert.alert('Registration failed', err.message);
     } finally {
@@ -72,78 +42,56 @@ export default function SignUpScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-peach-100">
+    <SafeAreaView className="flex-1 bg-white">
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1">
-        <ScrollView
-          contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}>
-          <View className="mb-6 items-center">
-            <Image
-              source={require('../../assets/logo.png')}
-              className="h-24 w-40"
-              resizeMode="contain"
-            />
-          </View>
-          <AuthCard>
-            <Text className="text-4xl font-bold text-text">Create Account</Text>
-            <Text className="mt-1 text-base text-sub">Join us to get started</Text>
-            <TextField
-              label="Name"
-              value={name}
-              onChangeText={setName}
-              placeholder="Enter Name"
-              iconName="person-outline"
-              error={errors.name}
-              editable={!loading}
-            />
-            <TextField
-              label="Email"
-              value={email}
-              onChangeText={setEmail}
-              placeholder="Enter Email"
-              iconName="mail-outline"
-              keyboardType="email-address"
-              error={errors.email}
-              editable={!loading}
-            />
-            <PasswordField
-              label="Password"
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Enter Password"
-              error={errors.password}
-              editable={!loading}
-            />
-            <PasswordField
-              label="Confirm Password"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              placeholder="Confirm Password"
-              error={errors.confirmPassword}
-              editable={!loading}
-            />
-            <PrimaryButton
-              title="Create Account"
-              onPress={handleSubmit}
-              accessibilityLabel="Create account"
-              className="mt-6"
-              loading={loading}
-            />
-            <GoogleButton onPress={() => Alert.alert('Google sign-in is not available yet')} />
-          </AuthCard>
-          <View className="mt-6 flex-row justify-center">
-            <Text className="text-sub">Already have an account? </Text>
-            <Pressable
-              onPress={() => navigation.navigate('Login')}
-              accessibilityRole="link"
-              accessibilityLabel="Log In">
-              <Text className="font-bold text-peach-400 underline">Log In</Text>
-            </Pressable>
-          </View>
-        </ScrollView>
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        className="flex-1 justify-center p-6">
+        <View className="mb-8">
+          <Text className="text-3xl font-bold text-center text-black">Join TechnoMart</Text>
+        </View>
+        <View className="gap-4">
+          <TextInput
+            className="rounded border border-gray-300 p-3"
+            placeholder="Name"
+            value={name}
+            onChangeText={setName}
+          />
+          <TextInput
+            className="rounded border border-gray-300 p-3"
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          <TextInput
+            className="rounded border border-gray-300 p-3"
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+          <TextInput
+            className="rounded border border-gray-300 p-3"
+            placeholder="Confirm Password"
+            value={confirm}
+            onChangeText={setConfirm}
+            secureTextEntry
+          />
+          <TouchableOpacity
+            className="mt-2 rounded bg-green-500 p-3"
+            onPress={handleRegister}
+            disabled={loading}>
+            <Text className="text-center font-semibold text-white">
+              {loading ? 'Loading...' : 'Sign Up'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Login')}
+            className="pt-2">
+            <Text className="text-center text-blue-600">Back to login</Text>
+          </TouchableOpacity>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
