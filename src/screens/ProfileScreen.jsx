@@ -1,12 +1,15 @@
 // screens/ProfileScreen.jsx
-import React from "react"
+import React, { useEffect, useRef, useLayoutEffect } from "react"
 import {
   View,
   Text,
   Image,
   TouchableOpacity,
   ScrollView,
-  Switch
+  Switch,
+  Linking,
+  Alert,
+  BackHandler,
 } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import {
@@ -15,9 +18,21 @@ import {
   Ionicons,
   AntDesign
 } from "@expo/vector-icons"
+import { useFocusEffect } from "@react-navigation/native"
+import ConfirmLogoutModal from "../components/ConfirmLogoutModal"
 
-const Row = ({ iconPack = "Feather", icon, tint = "#8B8B8B", title, onPress, valueRight, accessibilityLabel }) => {
-  const IconPack = { Feather, Ionicons, MaterialCommunityIcons, AntDesign }[iconPack]
+const Row = ({
+  iconPack = "Feather",
+  icon,
+  tint = "#8B8B8B",
+  title,
+  onPress,
+  valueRight,
+  accessibilityLabel
+}) => {
+  const IconPack = { Feather, Ionicons, MaterialCommunityIcons, AntDesign }[
+    iconPack
+  ]
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -50,8 +65,83 @@ const Section = ({ children }) => (
 export default function ProfileScreen({ navigation }) {
   const insets = useSafeAreaInsets()
 
+  // Existing state
   const [pushEnabled, setPushEnabled] = React.useState(true)
   const creditPoints = 0.01
+
+  // Local inline Settings state (no extra navigation)
+  const [settingsExpanded, setSettingsExpanded] = React.useState(true)
+  const [theme, setTheme] = React.useState("System") // "System" | "Light" | "Dark"
+  const [cameraAllowed, setCameraAllowed] = React.useState(false)
+
+  // NEW: show/hide confirm modal
+  const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false)
+
+  // Flag to allow leaving this screen ONLY when logging out
+  const isLoggingOut = useRef(false)
+
+  // Disable gestures & header back (prevents iOS swipe-back, etc.)
+  useLayoutEffect(() => {
+    navigation?.setOptions?.({
+      gestureEnabled: false,
+      headerBackVisible: false
+    })
+  }, [navigation])
+
+  // Intercept any attempt to leave this screen (back, gesture, programmatic)
+  useEffect(() => {
+    const sub = navigation.addListener("beforeRemove", (e) => {
+      // Allow if we are logging out (we call replace('Login'))
+      if (isLoggingOut.current) return
+      // Block all other attempts to leave Profile
+      e.preventDefault()
+    })
+    return sub
+  }, [navigation])
+
+  // Block Android hardware back button
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => true // consume/back blocked
+      const sub = BackHandler.addEventListener("hardwareBackPress", onBackPress)
+      return () => sub.remove()
+    }, [])
+  )
+
+  const cycleTheme = () => {
+    setTheme((prev) =>
+      prev === "System" ? "Light" : prev === "Light" ? "Dark" : "System"
+    )
+  }
+
+  const requestOrToggleCamera = () => {
+    if (!cameraAllowed) {
+      Alert.alert(
+        "Camera Permission",
+        "Simulating a camera permission prompt here. Replace with your permission request logic.",
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "Allow", onPress: () => setCameraAllowed(true) }
+        ]
+      )
+    } else {
+      Alert.alert(
+        "Revoke Permission?",
+        "This will simulate revoking camera access.",
+        [
+          { text: "Keep", style: "cancel" },
+          { text: "Revoke", style: "destructive", onPress: () => setCameraAllowed(false) }
+        ]
+      )
+    }
+  }
+
+  // Called only after user confirms in the modal
+  const confirmLogoutAndNavigate = () => {
+    isLoggingOut.current = true
+    // Clear any auth/session state here if needed...
+    navigation.replace?.("Login")
+  }
 
   return (
     <View
@@ -84,23 +174,11 @@ export default function ProfileScreen({ navigation }) {
         />
       </View>
 
-      {/* Header */}
+      {/* Header — no back button */}
       <View className="mt-5 px-4 pb-3 relative">
-        <View className="flex-row items-center justify-between">
-          <TouchableOpacity
-            onPress={() => navigation.goBack?.()}
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Feather name="chevron-left" size={22} color="#9AA3AF" />
-          </TouchableOpacity>
-
-          {/* Centered Title */}
-          <Text className="absolute left-1/2 -translate-x-1/2 text-base font-semibold text-gray-600">
-            Profile
-          </Text>
-        </View>
+        <Text className="text-center text-base font-semibold text-gray-600">
+          Profile
+        </Text>
       </View>
 
       <ScrollView
@@ -161,7 +239,7 @@ export default function ProfileScreen({ navigation }) {
           <Text className="text-[12px] text-white/85">your next order.</Text>
         </TouchableOpacity>
 
-        {/* Sections */}
+        {/* Personal / Feedback */}
         <Section>
           <Row
             iconPack="Feather"
@@ -175,20 +253,6 @@ export default function ProfileScreen({ navigation }) {
         <Section>
           <Row
             iconPack="Feather"
-            icon="bell"
-            tint="#F5B942"
-            title="Notifications"
-            valueRight={
-              <Switch
-                value={pushEnabled}
-                onValueChange={setPushEnabled}
-                accessibilityLabel="Notification toggle"
-              />
-            }
-          />
-          <View className="h-[1px] bg-gray-200 mx-4" />
-          <Row  
-            iconPack="Feather"
             icon="message-circle"
             tint="#6ED3C7"
             title="Share Feedback"
@@ -196,6 +260,7 @@ export default function ProfileScreen({ navigation }) {
           />
         </Section>
 
+        {/* FAQs + Inline Settings */}
         <Section>
           <Row
             iconPack="AntDesign"
@@ -205,28 +270,127 @@ export default function ProfileScreen({ navigation }) {
             onPress={() => navigation.navigate?.("FAQs")}
           />
           <View className="h-[1px] bg-gray-200 mx-4" />
+
+          {/* Settings (inline, expandable) */}
           <Row
             iconPack="Feather"
             icon="settings"
             tint="#8B5CF6"
             title="Settings"
-            onPress={() => navigation.navigate?.("Settings")}
+            onPress={() => setSettingsExpanded((v) => !v)}
+            valueRight={
+              <Feather
+                name={settingsExpanded ? "chevron-up" : "chevron-down"}
+                size={18}
+                color="#C6C6C6"
+              />
+            }
+          />
+
+          {settingsExpanded && (
+            <View className="pb-2">
+              {/* Appearance */}
+              <View className="h-[1px] bg-gray-200 mx-4" />
+              <Row
+                iconPack="Feather"
+                icon="moon"
+                tint="#7C3AED"
+                title="Appearance"
+                onPress={cycleTheme}
+                valueRight={
+                  <View className="px-2 py-1 rounded-md" style={{ backgroundColor: "#EDE9FE" }}>
+                    <Text className="text-xs text-[#5B21B6]">{theme}</Text>
+                  </View>
+                }
+              />
+
+              {/* Notifications */}
+              <View className="h-[1px] bg-gray-200 mx-4" />
+              <Row
+                iconPack="Feather"
+                icon="bell"
+                tint="#10B981"
+                title="Notifications"
+                onPress={() => setPushEnabled((v) => !v)}
+                valueRight={
+                  <Switch
+                    value={pushEnabled}
+                    onValueChange={setPushEnabled}
+                    accessibilityLabel="Toggle push notifications"
+                  />
+                }
+              />
+
+              {/* Camera Permission */}
+              <View className="h-[1px] bg-gray-200 mx-4" />
+              <Row
+                iconPack="Feather"
+                icon="camera"
+                tint="#F59E0B"
+                title="Camera Permission"
+                onPress={requestOrToggleCamera}
+                valueRight={
+                  <View className="flex-row items-center">
+                    <View
+                      className="px-2 py-[2px] rounded-md mr-2"
+                      style={{ backgroundColor: cameraAllowed ? "#DCFCE7" : "#FEE2E2" }}
+                    >
+                      <Text
+                        className="text-xs"
+                        style={{ color: cameraAllowed ? "#166534" : "#991B1B" }}
+                      >
+                        {cameraAllowed ? "Allowed" : "Not allowed"}
+                      </Text>
+                    </View>
+                    <Feather name="chevron-right" size={18} color="#C6C6C6" />
+                  </View>
+                }
+              />
+            </View>
+          )}
+        </Section>
+
+        {/* About + Legal & Policies (before Log Out) */}
+        <Section>
+          <Row
+            iconPack="Feather"
+            icon="info"
+            tint="#3B82F6"
+            title="About"
+            onPress={() => Linking.openURL("https://www.facebook.com/jseph.andrade")}
+          />
+
+          <View className="h-[1px] bg-gray-200 mx-4" />
+          <Row
+            iconPack="Feather"
+            icon="file-text"
+            tint="#9CA3AF"
+            title="Legal & Policies"
+            onPress={() => Linking.openURL("https://www.facebook.com/jseph.andrade")}
           />
         </Section>
 
+        {/* Log Out — tap to open modal (separate component) */}
         <Section>
           <Row
             iconPack="Feather"
             icon="log-out"
             tint="#EF4444"
             title="Log Out"
-            onPress={() => navigation.replace?.("Login")}
+            onPress={() => setShowLogoutConfirm(true)}
             accessibilityLabel="Log out"
           />
         </Section>
 
         <View className="h-6" />
       </ScrollView>
+
+      {/* Confirmation Modal */}
+      <ConfirmLogoutModal
+        visible={showLogoutConfirm}
+        onCancel={() => setShowLogoutConfirm(false)}
+        onConfirm={confirmLogoutAndNavigate}
+      />
     </View>
   )
 }
