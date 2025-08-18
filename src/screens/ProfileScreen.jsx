@@ -202,7 +202,7 @@ export default function ProfileScreen({ navigation }) {
             icon="questioncircleo"
             tint="#FF6F61"
             title="FAQs"
-            onPress={() => navigation.navigate?.("FAQ")}
+            onPress={() => navigation.navigate?.("FAQs")}
           />
           <View className="h-[1px] bg-gray-200 mx-4" />
           <Row
