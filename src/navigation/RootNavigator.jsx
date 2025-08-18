@@ -9,6 +9,7 @@ import FaceScanScreen from '../screens/FaceScanScreen' // make sure this path is
 // import FoodOrdersScreen from '../screens/FoodOrdersScreen'
 import ProfileScreen from "../screens/ProfileScreen"
 import PersonalInfoScreen from "../screens/PersonalInfoScreen"
+import ShareFeedbackScreen from "../screens/ShareFeedbackScreen"
 
 const Stack = createNativeStackNavigator()
 
@@ -24,6 +25,7 @@ export default function RootNavigator() {
       {/* <Stack.Screen name="Home" component={FoodOrdersScreen} /> */}
       <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen name="PersonalInfo" component={PersonalInfoScreen} />
+      <Stack.Screen name="Feedback" component={ShareFeedbackScreen} />
     </Stack.Navigator>
   )
 }

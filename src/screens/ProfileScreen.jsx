@@ -187,12 +187,12 @@ export default function ProfileScreen({ navigation }) {
             }
           />
           <View className="h-[1px] bg-gray-200 mx-4" />
-          <Row
+          <Row  
             iconPack="Feather"
-            icon="credit-card"
+            icon="message-circle"
             tint="#6ED3C7"
-            title="Payment Method"
-            onPress={() => navigation.navigate?.("PaymentMethods")}
+            title="Share Feedback"
+            onPress={() => navigation.navigate?.("Feedback")}
           />
         </Section>
 
