@@ -21,8 +21,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { MaterialCommunityIcons, Feather } from "@expo/vector-icons"
 import AuthLayout from "../components/AuthLayout"
 import TermsNotice from "../components/TermsNotice"
-import FaceScanScreen from "./FaceScanScreen"
-import { signIn } from "../utils/auth"
+
+// NOTE: No signIn import — auth is disabled for now.
+// import { signIn } from "../utils/auth"
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -34,7 +35,7 @@ export default function LoginScreen({ navigation }) {
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
 
-  // --- Touch & submit state (controls when to show errors) ---
+  // --- Touch & submit state (kept for UI hints only) ---
   const [emailTouched, setEmailTouched] = useState(false)
   const [passwordTouched, setPasswordTouched] = useState(false)
   const [formSubmitted, setFormSubmitted] = useState(false)
@@ -45,7 +46,7 @@ export default function LoginScreen({ navigation }) {
   // --- Safe area ---
   const insets = useSafeAreaInsets()
 
-  // --- Derived validation state ---
+  // --- Derived validation state (purely visual now) ---
   const trimmedEmail = useMemo(() => email.trim().toLowerCase(), [email])
   const trimmedPassword = useMemo(() => password.trim(), [password])
 
@@ -79,22 +80,22 @@ export default function LoginScreen({ navigation }) {
     }
   }, [])
 
-  const setSafeState = useCallback(
-    setter => value => {
-      if (mountedRef.current) setter(value)
-    },
+  const setSafeState = setter => value => {
+    if (mountedRef.current) setter(value)
+  }
+
+  const setSafeLoading = useCallback(setSafeState(setLoading), [])
+  const setSafeError = useCallback(setSafeState(setErrorMessage), [])
+  const setSafeEmail = useCallback(setSafeState(setEmail), [])
+  const setSafePassword = useCallback(setSafeState(setPassword), [])
+  const setSafeEmailTouched = useCallback(setSafeState(setEmailTouched), [])
+  const setSafePasswordTouched = useCallback(
+    setSafeState(setPasswordTouched),
     []
   )
+  const setSafeFormSubmitted = useCallback(setSafeState(setFormSubmitted), [])
 
-  const setSafeLoading = setSafeState(setLoading)
-  const setSafeError = setSafeState(setErrorMessage)
-  const setSafeEmail = setSafeState(setEmail)
-  const setSafePassword = setSafeState(setPassword)
-  const setSafeEmailTouched = setSafeState(setEmailTouched)
-  const setSafePasswordTouched = setSafeState(setPasswordTouched)
-  const setSafeFormSubmitted = setSafeState(setFormSubmitted)
-
-  // Clear server error as user edits
+  // Clear error as user edits
   useEffect(() => {
     if (errorMessage) setSafeError("")
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -117,45 +118,30 @@ export default function LoginScreen({ navigation }) {
     [passwordTouched, setSafePasswordTouched, setSafePassword]
   )
 
-  // --- Submit handler ---
+  // --- Submit handler (no auth; just navigate) ---
   const handleLogin = useCallback(async () => {
-    setSafeFormSubmitted(true)
-    if (emailError || passwordError) {
-      const firstError = emailError || passwordError
-      setSafeError(firstError)
-      AccessibilityInfo.announceForAccessibility?.(firstError)
-      return
-    }
     if (loading) return
-
+    setSafeFormSubmitted(true) // keeps error hints/UX, but doesn't block navigation
     setSafeError("")
     setSafeLoading(true)
 
     try {
-      await signIn(trimmedEmail, trimmedPassword)
-      AccessibilityInfo.announceForAccessibility?.("Logged in successfully")
+      // Optional tiny delay so the spinner shows briefly
+      await new Promise(r => setTimeout(r, 250))
+      AccessibilityInfo.announceForAccessibility?.("Logged in")
+      // Clear fields/touch state (cosmetic)
       setSafeEmail("")
       setSafePassword("")
       setSafeEmailTouched(false)
       setSafePasswordTouched(false)
       setSafeFormSubmitted(false)
-      navigation.navigate("Home")
-    } catch (err) {
-      const message =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Something went wrong. Please try again."
-      setSafeError(message)
-      AccessibilityInfo.announceForAccessibility?.(message)
+      // Go straight to the next screen
+      navigation.navigate("Profile")
     } finally {
       setSafeLoading(false)
     }
   }, [
-    emailError,
-    passwordError,
     loading,
-    trimmedEmail,
-    trimmedPassword,
     navigation,
     setSafeError,
     setSafeLoading,
@@ -208,9 +194,18 @@ export default function LoginScreen({ navigation }) {
     return () => loops.forEach(l => l.stop())
   }, [spin1, spin2, spin3])
 
-  const rotate1 = spin1.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "360deg"] })
-  const rotate2 = spin2.interpolate({ inputRange: [0, 1], outputRange: ["360deg", "0deg"] })
-  const rotate3 = spin3.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "360deg"] })
+  const rotate1 = spin1.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "360deg"]
+  })
+  const rotate2 = spin2.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["360deg", "0deg"]
+  })
+  const rotate3 = spin3.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "360deg"]
+  })
 
   return (
     <AuthLayout>
@@ -228,7 +223,7 @@ export default function LoginScreen({ navigation }) {
             <View
               style={{
                 ...StyleSheet.absoluteFillObject,
-                backgroundColor: "#FFF5EE" // change to any color/gradient container if you like
+                backgroundColor: "#FFF5EE"
               }}
               accessible={false}
               importantForAccessibility="no-hide-descendants"
@@ -244,7 +239,11 @@ export default function LoginScreen({ navigation }) {
                   transform: [{ rotate: rotate1 }]
                 }}
               >
-                <MaterialCommunityIcons name="pizza" size={96} color="#FFC999" />
+                <MaterialCommunityIcons
+                  name="pizza"
+                  size={96}
+                  color="#FFC999"
+                />
               </Animated.View>
 
               <Animated.View
@@ -256,7 +255,11 @@ export default function LoginScreen({ navigation }) {
                   transform: [{ rotate: rotate2 }]
                 }}
               >
-                <MaterialCommunityIcons name="french-fries" size={96} color="#FFC999" />
+                <MaterialCommunityIcons
+                  name="french-fries"
+                  size={96}
+                  color="#FFC999"
+                />
               </Animated.View>
 
               <Animated.View
@@ -286,7 +289,7 @@ export default function LoginScreen({ navigation }) {
             >
               <View className="flex-1 relative">
                 {/* Logo */}
-                <View className="pt-3 mt-10 w-full items-center mb-4">
+                <View className="pt-7 mt-10 w-full items-center mb-4">
                   <Image
                     source={require("../../assets/logo.png")}
                     style={{ width: 120, height: 120 }}
@@ -369,7 +372,9 @@ export default function LoginScreen({ navigation }) {
                     />
                     <TouchableOpacity
                       accessibilityRole="button"
-                      accessibilityLabel={showPassword ? "Hide password" : "Show password"}
+                      accessibilityLabel={
+                        showPassword ? "Hide password" : "Show password"
+                      }
                       onPress={() => setShowPassword(p => !p)}
                       disabled={!inputsEditable}
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -382,7 +387,7 @@ export default function LoginScreen({ navigation }) {
                     </TouchableOpacity>
                   </View>
 
-                  {/* Inline errors */}
+                  {/* Inline errors (visual only) */}
                   <View className="mt-2 flex-row items-center justify-between">
                     <Text
                       testID="errorText"
@@ -438,27 +443,41 @@ export default function LoginScreen({ navigation }) {
                     <View className="flex-1 h-[1px] bg-gray-300" />
                   </View>
 
+                  {/* Face login (still just routes to your FaceScan screen) */}
                   <TouchableOpacity
-  className="flex-row items-center justify-center rounded-xl bg-white py-3 border border-gray-200"
-  onPress={() => navigation.navigate("FaceScan", { autoPrompt: true })}
-  accessibilityRole="button"
-  accessibilityLabel="Login with Face"
->
-  <MaterialCommunityIcons name="face-recognition" size={20} color="#F07F13" />
-  <Text className="ml-8 text-base">Login with Face</Text>
-</TouchableOpacity>
+                    className="flex-row items-center justify-center rounded-xl bg-white py-3 border border-gray-200"
+                    onPress={() =>
+                      navigation.navigate("FaceScan", { autoPrompt: true })
+                    }
+                    accessibilityRole="button"
+                    accessibilityLabel="Login with Face"
+                  >
+                    <MaterialCommunityIcons
+                      name="face-recognition"
+                      size={20}
+                      color="#F07F13"
+                    />
+                    <Text className="ml-8 text-base">Login with Face</Text>
+                  </TouchableOpacity>
 
                   {/* Google */}
                   <TouchableOpacity
                     className="flex-row items-center justify-center rounded-xl bg-white py-3 border border-gray-200"
                     onPress={() =>
-                      Alert.alert("Google login", "Not implemented in this build")
+                      Alert.alert(
+                        "Google login",
+                        "Not implemented in this build"
+                      )
                     }
                     disabled={loading}
                     accessibilityRole="button"
                     accessibilityLabel="Login with Google"
                   >
-                    <MaterialCommunityIcons name="google" size={20} color="#DB4437" />
+                    <MaterialCommunityIcons
+                      name="google"
+                      size={20}
+                      color="#DB4437"
+                    />
                     <Text className="ml-8 text-base">Login with Google</Text>
                   </TouchableOpacity>
 

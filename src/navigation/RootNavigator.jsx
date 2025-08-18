@@ -6,6 +6,8 @@ import SignUpScreen from '../screens/SignUpScreen'
 import AccountCreatedScreen from '../screens/AccountCreatedScreen'
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen'
 import FaceScanScreen from '../screens/FaceScanScreen' // make sure this path is correct
+// import FoodOrdersScreen from '../screens/FoodOrdersScreen'
+import ProfileScreen from "../screens/ProfileScreen"
 
 const Stack = createNativeStackNavigator()
 
@@ -18,6 +20,8 @@ export default function RootNavigator() {
       <Stack.Screen name="AccountCreated" component={AccountCreatedScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       <Stack.Screen name="FaceScan" component={FaceScanScreen} />
+      {/* <Stack.Screen name="Home" component={FoodOrdersScreen} /> */}
+      <Stack.Screen name="Profile" component={ProfileScreen} />
     </Stack.Navigator>
   )
 }
