@@ -1,0 +1,427 @@
+// screens/PersonalInfoScreen.jsx
+import React from "react"
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  TextInput,
+  Alert,
+  ActivityIndicator,
+  Linking,
+  Platform,
+} from "react-native"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
+import {
+  MaterialCommunityIcons,
+  Feather,
+  Ionicons,
+  AntDesign,
+} from "@expo/vector-icons"
+import * as LocalAuthentication from "expo-local-authentication"
+
+const FieldCard = ({ children }) => (
+  <View className="mt-3 rounded-2xl bg-[#f5f5f5]">{children}</View>
+)
+
+const Label = ({ children }) => (
+  <Text className="px-4 pt-3 pb-1 text-[12px] font-medium text-gray-500 uppercase">
+    {children}
+  </Text>
+)
+
+const Row = ({ children }) => (
+  <View className="px-4 py-3">{children}</View>
+)
+
+const Input = React.forwardRef(
+  ({ value, onChangeText, placeholder, keyboardType, autoCapitalize, textContentType, accessibilityLabel }, ref) => (
+    <TextInput
+      ref={ref}
+      className="rounded-xl bg-white px-4 py-3 text-[15px] text-text"
+      value={value}
+      onChangeText={onChangeText}
+      placeholder={placeholder}
+      placeholderTextColor="#9AA3AF"
+      keyboardType={keyboardType}
+      autoCapitalize={autoCapitalize}
+      textContentType={textContentType}
+      accessibilityLabel={accessibilityLabel || placeholder}
+      returnKeyType="done"
+    />
+  )
+)
+
+const Pill = ({ color = "#16A34A", text }) => (
+  <View className="rounded-full px-2 py-[2px]" style={{ backgroundColor: `${color}22`, borderWidth: 1, borderColor: color }}>
+    <Text style={{ color }} className="text-[11px] font-semibold">{text}</Text>
+  </View>
+)
+
+export default function PersonalInfoScreen({ navigation, route }) {
+  const insets = useSafeAreaInsets()
+
+  // Prefill with whatever you have in your store / route params:
+  const [firstName, setFirstName] = React.useState("Joseph")
+  const [lastName, setLastName] = React.useState("Andrade")
+  const [email, setEmail] = React.useState("joseph@example.com")
+  const [emailVerified, setEmailVerified] = React.useState(false) // replace with real status
+  const [mobile, setMobile] = React.useState("+63 900 000 0000")
+
+  const [saving, setSaving] = React.useState(false)
+  const [sendingLink, setSendingLink] = React.useState(false)
+
+  // Face auth state
+  const [faceSupported, setFaceSupported] = React.useState(false)
+  const [biometricEnrolled, setBiometricEnrolled] = React.useState(false)
+  const [checkingBio, setCheckingBio] = React.useState(true)
+
+  React.useEffect(() => {
+    let mounted = true
+    ;(async () => {
+      try {
+        const hasHW = await LocalAuthentication.hasHardwareAsync()
+        const types = hasHW ? await LocalAuthentication.supportedAuthenticationTypesAsync() : []
+        const supportsFace = types?.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)
+        const enrolled = hasHW ? await LocalAuthentication.isEnrolledAsync() : false
+        if (mounted) {
+          setFaceSupported(Boolean(supportsFace))
+          setBiometricEnrolled(Boolean(enrolled))
+        }
+      } catch (e) {
+        // Non-fatal; surface a friendly message
+        console.warn("LocalAuth check failed", e)
+      } finally {
+        if (mounted) setCheckingBio(false)
+      }
+    })()
+    return () => { mounted = false }
+  }, [])
+
+  // ---- Mock API hooks (replace with real ones) ----
+  const sendVerificationLink = async (emailAddr) => {
+    // call your /email/verify endpoint
+    await new Promise(r => setTimeout(r, 900))
+    return { ok: true }
+  }
+
+  const saveProfile = async (payload) => {
+    // call your /profile/update endpoint
+    await new Promise(r => setTimeout(r, 900))
+    return { ok: true }
+  }
+  // -----------------------------------------------
+
+  const onSendVerify = async () => {
+    try {
+      setSendingLink(true)
+      const res = await sendVerificationLink(email)
+      if (!res.ok) throw new Error("Failed to send verification email")
+      Alert.alert("Verification sent", "Check your inbox for a link to verify your email.")
+    } catch (e) {
+      Alert.alert("Oops", e.message || "Could not send the verification link.")
+    } finally {
+      setSendingLink(false)
+    }
+  }
+
+  const onSave = async () => {
+    if (!firstName.trim() || !lastName.trim()) {
+      Alert.alert("Missing info", "First name and last name are required.")
+      return
+    }
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      Alert.alert("Invalid email", "Please enter a valid email address.")
+      return
+    }
+    if (!/^\+?\d[0-9\s\-()]{6,}$/.test(mobile)) {
+      Alert.alert("Invalid number", "Please enter a valid mobile number.")
+      return
+    }
+
+    try {
+      setSaving(true)
+      const res = await saveProfile({ firstName, lastName, email, mobile })
+      if (!res.ok) throw new Error("Save failed")
+      Alert.alert("Saved", "Your personal info has been updated.")
+      // If user changed email, flip verified state off until they verify
+      // (In real app, rely on server response)
+      setEmailVerified(prev => (prev && email === "joseph@example.com"))
+    } catch (e) {
+      Alert.alert("Oops", e.message || "Something went wrong while saving.")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const onRegisterFace = async () => {
+    if (!faceSupported) {
+      Alert.alert("Not supported", "Your device doesn’t support Face Recognition.")
+      return
+    }
+
+    if (!biometricEnrolled) {
+      // take user to OS settings to enroll
+      Alert.alert(
+        "Set up Face Recognition",
+        "You’ll be taken to device settings to enroll your face.",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Open Settings",
+            onPress: () => {
+              if (Platform.OS === "android") {
+                // Most Androids will open Settings; on iOS this opens the app’s settings screen
+                Linking.openSettings()
+              } else {
+                Linking.openSettings()
+              }
+            },
+          },
+        ]
+      )
+      return
+    }
+
+    // If already enrolled, let them test/refresh the biometric
+    try {
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: "Authenticate with Face",
+        fallbackLabel: "Use passcode",
+        cancelLabel: "Cancel",
+        disableDeviceFallback: false,
+      })
+      if (result.success) {
+        Alert.alert("Face recognized", "Face authentication is active on this device.")
+      } else {
+        Alert.alert("Authentication failed", result.warning || "Please try again.")
+      }
+    } catch (e) {
+      Alert.alert("Error", "Could not complete face authentication.")
+    }
+  }
+
+  return (
+    <View
+      className="flex-1 bg-white"
+      style={{ paddingTop: insets.top + 8, paddingBottom: insets.bottom }}
+    >
+      {/* Decorative background icons (same vibe as Profile) */}
+      <View
+        className="absolute inset-0"
+        accessible={false}
+        importantForAccessibility="no-hide-descendants"
+      >
+        <MaterialCommunityIcons
+          name="pizza"
+          size={96}
+          color="#FFC999"
+          style={{ position: "absolute", top: 40, left: 20, opacity: 0.15 }}
+        />
+        <MaterialCommunityIcons
+          name="french-fries"
+          size={96}
+          color="#FFC999"
+          style={{ position: "absolute", top: 120, right: 20, opacity: 0.15 }}
+        />
+        <MaterialCommunityIcons
+          name="cup"
+          size={96}
+          color="#FFC999"
+          style={{ position: "absolute", top: 220, left: 80, opacity: 0.15 }}
+        />
+      </View>
+
+      {/* Header */}
+      <View className="mt-5 px-4 pb-3 relative">
+        <View className="flex-row items-center justify-between">
+          <TouchableOpacity
+            onPress={() => navigation.goBack?.()}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Feather name="chevron-left" size={22} color="#9AA3AF" />
+          </TouchableOpacity>
+
+          <Text className="absolute left-1/2 -translate-x-1/2 text-base font-semibold text-gray-600">
+            Personal Info
+          </Text>
+
+          {/* spacer to balance header layout */}
+          <View style={{ width: 22 }} />
+        </View>
+      </View>
+
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Names */}
+        <FieldCard>
+          <Label>Basic Info</Label>
+          <Row>
+            <Text className="mb-1 text-[13px] text-gray-600">First Name</Text>
+            <Input
+              value={firstName}
+              onChangeText={setFirstName}
+              placeholder="First name"
+              autoCapitalize="words"
+              textContentType="givenName"
+              accessibilityLabel="First name"
+            />
+          </Row>
+           <View className="h-[1px] bg-gray-200 mx-4" />
+          <Row>
+            <Text className="mt-1 mb-1 text-[13px] text-gray-600">Last Name</Text>
+            <Input
+              value={lastName}
+              onChangeText={setLastName}
+              placeholder="Last name"
+              autoCapitalize="words"
+              textContentType="familyName"
+              accessibilityLabel="Last name"
+            />
+          </Row>
+        </FieldCard>
+
+        {/* Email w/ verification */}
+        <FieldCard>
+          <Label>Email</Label>
+          <Row>
+            <View className="mb-2 flex-row items-center justify-between">
+              <Text className="text-[13px] text-gray-600">Email Address</Text>
+              {emailVerified ? (
+                <Pill color="#16A34A" text="Verified" />
+              ) : (
+                <Pill color="#DC2626" text="Unverified" />
+              )}
+            </View>
+            <Input
+              value={email}
+              onChangeText={(t) => {
+                setEmail(t)
+                // If user edits email, mark as unverified (UI-only; real app should rely on server)
+                setEmailVerified(false)
+              }}
+              placeholder="name@domain.com"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              textContentType="emailAddress"
+              accessibilityLabel="Email address"
+            />
+            {!emailVerified && (
+              <TouchableOpacity
+                onPress={onSendVerify}
+                disabled={sendingLink}
+                className="mt-3 self-start rounded-xl px-4 py-2"
+                style={{ backgroundColor: "#F07F13" }}
+                accessibilityRole="button"
+                accessibilityLabel="Send verification link"
+              >
+                {sendingLink ? (
+                  <View className="flex-row items-center">
+                    <ActivityIndicator color="#fff" size="small" />
+                    <Text className="ml-2 text-[13px] font-semibold text-white">Sending…</Text>
+                  </View>
+                ) : (
+                  <View className="flex-row items-center">
+                    <Feather name="send" size={16} color="#fff" />
+                    <Text className="ml-2 text-[13px] font-semibold text-white">Send verification link</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            )}
+            {emailVerified && (
+              <Text className="mt-2 text-[12px] text-gray-600">
+                This email is verified. Changing it will require verification again.
+              </Text>
+            )}
+          </Row>
+        </FieldCard>
+
+        {/* Mobile */}
+        <FieldCard>
+          <Label>Phone</Label>
+          <Row>
+            <Text className="mb-1 text-[13px] text-gray-600">Mobile Number</Text>
+            <Input
+              value={mobile}
+              onChangeText={setMobile}
+              placeholder="+63 9xx xxx xxxx"
+              keyboardType="phone-pad"
+              textContentType="telephoneNumber"
+              accessibilityLabel="Mobile number"
+            />
+            <Text className="mt-2 text-[12px] text-gray-600">
+              We’ll use this for order updates and account recovery.
+            </Text>
+          </Row>
+        </FieldCard>
+
+        {/* Face Recognition */}
+        <FieldCard>
+          <Label>Security</Label>
+
+          <View className="px-4 py-4 flex-row items-center justify-between">
+            <View className="flex-1 pr-3">
+              <View className="flex-row items-center mb-1">
+                <MaterialCommunityIcons name="face-recognition" size={18} color="#8B8B8B" />
+                <Text className="ml-2 text-[15px] text-text">Face Recognition</Text>
+              </View>
+              {checkingBio ? (
+                <Text className="text-[12px] text-gray-500">Checking device capabilities…</Text>
+              ) : faceSupported ? (
+                <Text className="text-[12px] text-gray-500">
+                  {biometricEnrolled
+                    ? "Face is set up on this device."
+                    : "Not enrolled yet on this device."}
+                </Text>
+              ) : (
+                <Text className="text-[12px] text-gray-500">Not supported on this device.</Text>
+              )}
+            </View>
+
+            <TouchableOpacity
+              onPress={onRegisterFace}
+              disabled={checkingBio || (!faceSupported && !biometricEnrolled)}
+              className="rounded-xl px-4 py-2"
+              style={{ backgroundColor: faceSupported ? "#8B5CF6" : "#D1D5DB" }}
+              accessibilityRole="button"
+              accessibilityLabel={
+                biometricEnrolled ? "Test face recognition" : "Set up face recognition"
+              }
+            >
+              <Text className="text-[13px] font-semibold text-white">
+                {biometricEnrolled ? "Test" : "Set Up"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </FieldCard>
+
+        {/* Save button */}
+        <TouchableOpacity
+          onPress={onSave}
+          disabled={saving}
+          className="mt-6 rounded-2xl px-5 py-4"
+          style={{ backgroundColor: "#F07F13", opacity: saving ? 0.7 : 1 }}
+          accessibilityRole="button"
+          accessibilityLabel="Save changes"
+        >
+          <View className="flex-row items-center justify-center">
+            {saving ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Ionicons name="save-outline" size={18} color="#fff" />
+            )}
+            <Text className="ml-2 text-base font-semibold text-white">
+              {saving ? "Saving…" : "Save Changes"}
+            </Text>
+          </View>
+        </TouchableOpacity>
+
+        <View className="h-6" />
+      </ScrollView>
+    </View>
+  )
+}
