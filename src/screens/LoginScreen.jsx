@@ -80,20 +80,26 @@ export default function LoginScreen({ navigation }) {
     }
   }, [])
 
-  const setSafeState = setter => value => {
-    if (mountedRef.current) setter(value)
-  }
-
-  const setSafeLoading = useCallback(setSafeState(setLoading), [])
-  const setSafeError = useCallback(setSafeState(setErrorMessage), [])
-  const setSafeEmail = useCallback(setSafeState(setEmail), [])
-  const setSafePassword = useCallback(setSafeState(setPassword), [])
-  const setSafeEmailTouched = useCallback(setSafeState(setEmailTouched), [])
-  const setSafePasswordTouched = useCallback(
-    setSafeState(setPasswordTouched),
+  const setSafeState = useCallback(
+    setter => value => {
+      if (mountedRef.current) setter(value)
+    },
     []
   )
-  const setSafeFormSubmitted = useCallback(setSafeState(setFormSubmitted), [])
+
+  const setSafeLoading = useMemo(() => setSafeState(setLoading), [setSafeState])
+  const setSafeError = useMemo(() => setSafeState(setErrorMessage), [setSafeState])
+  const setSafeEmail = useMemo(() => setSafeState(setEmail), [setSafeState])
+  const setSafePassword = useMemo(() => setSafeState(setPassword), [setSafeState])
+  const setSafeEmailTouched = useMemo(() => setSafeState(setEmailTouched), [setSafeState])
+  const setSafePasswordTouched = useMemo(
+    () => setSafeState(setPasswordTouched),
+    [setSafeState]
+  )
+  const setSafeFormSubmitted = useMemo(
+    () => setSafeState(setFormSubmitted),
+    [setSafeState]
+  )
 
   // Clear error as user edits
   useEffect(() => {
@@ -136,7 +142,7 @@ export default function LoginScreen({ navigation }) {
       setSafePasswordTouched(false)
       setSafeFormSubmitted(false)
       // Go straight to the next screen
-      navigation.navigate("Profile")
+      navigation.replace("Home")
     } finally {
       setSafeLoading(false)
     }

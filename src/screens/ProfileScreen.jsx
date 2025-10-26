@@ -10,8 +10,11 @@ import {
   Linking,
   Alert,
   BackHandler,
+  StyleSheet,
+  Platform
 } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
+import { LinearGradient } from "expo-linear-gradient"
 import {
   MaterialCommunityIcons,
   Feather,
@@ -20,6 +23,19 @@ import {
 } from "@expo/vector-icons"
 import { useFocusEffect } from "@react-navigation/native"
 import ConfirmLogoutModal from "../components/ConfirmLogoutModal"
+import { useCart } from "../context/CartContext"
+import * as ImagePicker from "expo-image-picker"
+
+const BOTTOM_TABS = [
+  { key: "home", label: "Home", icon: "home" },
+  { key: "cart", label: "Cart", icon: "shopping-bag" },
+  { key: "history", label: "History", icon: "clock" },
+  { key: "alerts", label: "Alerts", icon: "bell", badge: true },
+  { key: "profile", label: "Profile", icon: "user" }
+]
+
+const DEFAULT_AVATAR =
+  "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=800&auto=format&fit=crop"
 
 const Row = ({
   iconPack = "Feather",
@@ -62,12 +78,16 @@ const Section = ({ children }) => (
   <View className="mt-4 rounded-2xl bg-[#f5f5f5]">{children}</View>
 )
 
-export default function ProfileScreen({ navigation }) {
+export default function ProfileScreen({ navigation, route }) {
   const insets = useSafeAreaInsets()
+  const lockNavigation = route?.params?.lockNavigation ?? false
+  const { totalItems } = useCart()
+  const cartHasItems = totalItems > 0
 
   // Existing state
   const [pushEnabled, setPushEnabled] = React.useState(true)
   const creditPoints = 0.01
+  const [avatarUri, setAvatarUri] = React.useState(DEFAULT_AVATAR)
 
   // Local inline Settings state (no extra navigation)
   const [settingsExpanded, setSettingsExpanded] = React.useState(true)
@@ -80,16 +100,66 @@ export default function ProfileScreen({ navigation }) {
   // Flag to allow leaving this screen ONLY when logging out
   const isLoggingOut = useRef(false)
 
+  const handleBottomTabPress = key => {
+    if (key === "profile") return
+    if (lockNavigation) return
+    if (key === "home") {
+      navigation.navigate("Home")
+      return
+    }
+    if (key === "cart") {
+      navigation.navigate("Cart")
+      return
+    }
+    if (key === "alerts") {
+      Alert.alert("Notifications", "You're all caught up!")
+      return
+    }
+    if (key === "history") {
+      Alert.alert("History", "Order history will be available soon.")
+    }
+  }
+
+  const handlePickAvatar = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission needed",
+          "We need access to your photos to update your profile picture."
+        )
+        return
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.9
+      })
+
+      if (!result.canceled) {
+        const uri = result.assets?.[0]?.uri
+        if (uri) setAvatarUri(uri)
+      }
+    } catch (err) {
+      console.warn("Avatar selection failed", err)
+      Alert.alert("Upload failed", "We couldn't update your photo. Please try again.")
+    }
+  }
+
   // Disable gestures & header back (prevents iOS swipe-back, etc.)
   useLayoutEffect(() => {
+    if (!lockNavigation) return
     navigation?.setOptions?.({
       gestureEnabled: false,
       headerBackVisible: false
     })
-  }, [navigation])
+  }, [navigation, lockNavigation])
 
   // Intercept any attempt to leave this screen (back, gesture, programmatic)
   useEffect(() => {
+    if (!lockNavigation) return undefined
     const sub = navigation.addListener("beforeRemove", (e) => {
       // Allow if we are logging out (we call replace('Login'))
       if (isLoggingOut.current) return
@@ -97,15 +167,16 @@ export default function ProfileScreen({ navigation }) {
       e.preventDefault()
     })
     return sub
-  }, [navigation])
+  }, [navigation, lockNavigation])
 
   // Block Android hardware back button
   useFocusEffect(
     React.useCallback(() => {
+      if (!lockNavigation) return undefined
       const onBackPress = () => true // consume/back blocked
       const sub = BackHandler.addEventListener("hardwareBackPress", onBackPress)
       return () => sub.remove()
-    }, [])
+    }, [lockNavigation])
   )
 
   const cycleTheme = () => {
@@ -174,32 +245,54 @@ export default function ProfileScreen({ navigation }) {
         />
       </View>
 
-      {/* Header — no back button */}
-      <View className="mt-5 px-4 pb-3 relative">
-        <Text className="text-center text-base font-semibold text-gray-600">
-          Profile
-        </Text>
-      </View>
-
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: insets.bottom + 140 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Top: Avatar + name */}
-        <View className="mt-5 flex-row items-center px-2">
-          <Image
-            source={{
-              uri: "https://media.istockphoto.com/id/2014684899/vector/placeholder-avatar-female-person-default-woman-avatar-image-gray-profile-anonymous-face.jpg?s=612x612&w=0&k=20&c=D-dk9ek0_jb19TiMVNVmlpvYVrQiFiJmgGmiLB5yE4w="
-            }}
-            className="h-14 w-14 rounded-full"
-            accessibilityIgnoresInvertColors
-          />
-          <View className="ml-3">
-            <Text className="text-lg font-semibold text-text">
-              Joseph Andrade
-            </Text>
+        {/* Profile hero */}
+        <LinearGradient
+          colors={["#FFE6D4", "#FFF7EE"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.profileHero}
+        >
+          <View className="flex-row items-center">
+            <TouchableOpacity
+              onPress={handlePickAvatar}
+              style={styles.avatarWrapper}
+              accessibilityRole="button"
+              accessibilityLabel="Update profile photo"
+            >
+              <Image
+                source={{ uri: avatarUri }}
+                style={styles.avatarImage}
+                resizeMode="cover"
+                accessibilityIgnoresInvertColors
+              />
+              <View style={styles.avatarBadge}>
+                <Feather name="camera" size={14} color="#FFFFFF" />
+              </View>
+            </TouchableOpacity>
+            <View className="flex-1 ml-4">
+              <Text className="text-xl font-semibold text-text">Joseph Andrade</Text>
+              <View className="mt-1 flex-row items-center">
+                <MaterialCommunityIcons name="map-marker" size={14} color="#F07F13" />
+                <Text className="ml-1 text-xs text-sub">TechnoMart Campus</Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => navigation.navigate?.("PersonalInfo")}
+                style={styles.heroActionButton}
+                className="mt-3 flex-row items-center self-start"
+                accessibilityRole="button"
+                accessibilityLabel="Edit personal information"
+              >
+                <Feather name="edit-2" size={14} color="#452B1A" />
+                <Text style={styles.heroActionText}>Edit profile</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+
+        </LinearGradient>
 
         {/* Credit Points */}
         <TouchableOpacity
@@ -383,6 +476,49 @@ export default function ProfileScreen({ navigation }) {
         <View className="h-6" />
       </ScrollView>
 
+      <View
+        style={[
+          styles.bottomTabs,
+          {
+            paddingBottom: Math.max(insets.bottom + 12, 20)
+          }
+        ]}
+        pointerEvents={lockNavigation ? "none" : "auto"}
+      >
+        {BOTTOM_TABS.map(tab => {
+          const isActive = tab.key === "profile"
+          const showBadge = tab.key === "cart" ? cartHasItems : tab.badge
+          return (
+            <TouchableOpacity
+              key={tab.key}
+              className="flex-1 items-center"
+              onPress={() => handleBottomTabPress(tab.key)}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: isActive, disabled: lockNavigation && tab.key !== "profile" }}
+              accessibilityLabel={tab.label}
+            >
+              <View
+                className="items-center justify-center rounded-full p-2"
+                style={[{ position: "relative" }, isActive ? styles.activeTab : null]}
+              >
+                <Feather
+                  name={tab.icon}
+                  size={22}
+                  color={isActive ? "#F07F13" : "#A8A29E"}
+                />
+                {showBadge ? <View style={styles.tabBadge} /> : null}
+              </View>
+              <Text
+                className="mt-1 text-xs font-medium"
+                style={{ color: isActive ? "#F07F13" : "#A8A29E" }}
+              >
+                {tab.label}
+              </Text>
+            </TouchableOpacity>
+          )
+        })}
+      </View>
+
       {/* Confirmation Modal */}
       <ConfirmLogoutModal
         visible={showLogoutConfirm}
@@ -392,3 +528,90 @@ export default function ProfileScreen({ navigation }) {
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  profileHero: {
+    marginTop: 20,
+    borderRadius: 32,
+    padding: 20,
+    shadowColor: "#F97316",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.12,
+    shadowRadius: 18,
+    elevation: 4
+  },
+  avatarWrapper: {
+    width: 96,
+    height: 96,
+    borderRadius: 28,
+    overflow: "hidden",
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative"
+  },
+  avatarImage: {
+    width: "100%",
+    height: "100%"
+  },
+  avatarBadge: {
+    position: "absolute",
+    bottom: 6,
+    right: 6,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#F07F13",
+    borderWidth: 3,
+    borderColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  heroActionButton: {
+    backgroundColor: "rgba(255,255,255,0.6)",
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 6
+  },
+  heroActionText: {
+    color: "#452B1A",
+    fontSize: 12,
+    fontWeight: "600",
+    marginLeft: 6
+  },
+  bottomTabs: {
+    position: "absolute",
+    left: 20,
+    right: 20,
+    bottom: 20,
+    borderRadius: 28,
+    backgroundColor: "#FFFFFF",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 18,
+    paddingTop: 12,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#0F172A",
+        shadowOffset: { width: 0, height: 12 },
+        shadowOpacity: 0.12,
+        shadowRadius: 18
+      },
+      android: {
+        elevation: 12
+      }
+    })
+  },
+  activeTab: {
+    backgroundColor: "#FFE8D6"
+  },
+  tabBadge: {
+    position: "absolute",
+    top: 6,
+    right: 8,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#EF4444"
+  }
+})

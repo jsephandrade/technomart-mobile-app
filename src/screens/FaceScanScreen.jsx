@@ -4,7 +4,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Image,
   KeyboardAvoidingView,
   ScrollView,
   TouchableWithoutFeedback,
@@ -114,32 +113,18 @@ export default function FaceScanScreen({ navigation, route }) {
         setIsSupported(compatible)
         setBiometryTypes(types || [])
         setHasEnrollment(enrolled)
-      } catch (e) {
+      } catch (err) {
         if (!mounted) return
         setIsSupported(false)
         setHasEnrollment(false)
         setBiometryTypes([])
-        setErrorMessage("We couldn't check biometrics on this device.")
+        setErrorMessage(
+          err?.message || "We couldn't check biometrics on this device."
+        )
       }
     })()
     return () => { mounted = false }
   }, [])
-
-  // Optional auto prompt (biometrics) — run ONCE per mount
-  useEffect(() => {
-    if (autoPrompt && canScan && !autoPromptedRef.current) {
-      autoPromptedRef.current = true
-      const id = setTimeout(() => handleBiometricAuth(), 300)
-      return () => clearTimeout(id)
-    }
-  }, [autoPrompt, canScan])
-
-  // Reset the auto-prompt flag when leaving the screen (so it can run again on re-entry)
-  useFocusEffect(
-    useCallback(() => {
-      return () => { autoPromptedRef.current = false }
-    }, [])
-  )
 
   // --- BIOMETRIC AUTH ---
   const handleBiometricAuth = useCallback(async () => {
@@ -162,7 +147,11 @@ export default function FaceScanScreen({ navigation, route }) {
         if (result.error === "lockout") {
           setErrorMessage("Too many attempts. Try your password instead.")
           AccessibilityInfo.announceForAccessibility?.("Too many attempts. Try your password instead.")
-        } else if (result.error === "user_cancel" || result.error === "system_cancel" || result.error === "app_cancel") {
+        } else if (
+          result.error === "user_cancel" ||
+          result.error === "system_cancel" ||
+          result.error === "app_cancel"
+        ) {
           // Silent no-op
           setErrorMessage("")
         } else {
@@ -170,13 +159,29 @@ export default function FaceScanScreen({ navigation, route }) {
           AccessibilityInfo.announceForAccessibility?.("Authentication failed. Please try again.")
         }
       }
-    } catch (e) {
-      setErrorMessage(e?.message || "Something went wrong with biometric authentication.")
+    } catch (err) {
+      setErrorMessage(err?.message || "Something went wrong with biometric authentication.")
       AccessibilityInfo.announceForAccessibility?.("Something went wrong with biometric authentication.")
     } finally {
       setAuthLoading(false)
     }
   }, [authLoading, supportedLabel, navigation])
+
+  // Optional auto prompt (biometrics) - run ONCE per mount
+  useEffect(() => {
+    if (autoPrompt && canScan && !autoPromptedRef.current) {
+      autoPromptedRef.current = true
+      const id = setTimeout(handleBiometricAuth, 300)
+      return () => clearTimeout(id)
+    }
+  }, [autoPrompt, canScan, handleBiometricAuth])
+
+  // Reset the auto-prompt flag when leaving the screen (so it can run again on re-entry)
+  useFocusEffect(
+    useCallback(() => {
+      return () => { autoPromptedRef.current = false }
+    }, [])
+  )
 
   // --- CAMERA TEST HELPERS ---
   const openSettings = useCallback(() => {
@@ -421,3 +426,4 @@ export default function FaceScanScreen({ navigation, route }) {
     </AuthLayout>
   )
 }
+

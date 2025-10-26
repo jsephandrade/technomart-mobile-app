@@ -152,9 +152,13 @@ export default function AccountCreatedScreen({ navigation, route }) {
             </View>
 
             <Text className="mt-1 text-base text-gray-700">
-              Your account was successfully created! </Text>
-              <Text>Click <Text className="font-semibold">Log in</Text> to get started.
+              Your account was successfully created! Click Log in to get started.
             </Text>
+            {email ? (
+              <Text className="mt-2 text-sm text-gray-600">
+                We will send important updates to {email}.
+              </Text>
+            ) : null}
 
             {/* Primary action */}
             <TouchableOpacity

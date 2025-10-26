@@ -3,8 +3,10 @@ import React from 'react';
 // import { TailwindProvider } from 'nativewind';
 import { NavigationContainer } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import RootNavigator from './src/navigation/RootNavigator';
 import './global.css'; // Ensure global styles are imported
+import { CartProvider } from './src/context/CartContext';
 
 export default function App() {
   return (
@@ -15,9 +17,13 @@ export default function App() {
     // </TailwindProvider>
     
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <NavigationContainer>
-        <RootNavigator />
-      </NavigationContainer>
+      <SafeAreaProvider>
+        <CartProvider>
+          <NavigationContainer>
+            <RootNavigator />
+          </NavigationContainer>
+        </CartProvider>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }

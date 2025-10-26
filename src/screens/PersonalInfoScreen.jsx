@@ -32,7 +32,7 @@ const Label = ({ children }) => (
 
 const Row = ({ children }) => <View className="px-4 py-3">{children}</View>
 
-// ⬇️ Allow secureTextEntry (new)
+// Allow secureTextEntry (new)
 const Input = React.forwardRef(
   (
     {
@@ -66,6 +66,8 @@ const Input = React.forwardRef(
   )
 )
 
+Input.displayName = "Input"
+
 const Pill = ({ color = "#16A34A", text }) => (
   <View
     className="rounded-full px-2 py-[2px]"
@@ -90,7 +92,7 @@ export default function PersonalInfoScreen({ navigation, route }) {
   const [saving, setSaving] = React.useState(false)
   const [sendingLink, setSendingLink] = React.useState(false)
 
-  // 🔐 Password state (NEW)
+  // Password state (NEW)
   const [currentPwd, setCurrentPwd] = React.useState("")
   const [newPwd, setNewPwd] = React.useState("")
   const [confirmPwd, setConfirmPwd] = React.useState("")
@@ -210,7 +212,7 @@ export default function PersonalInfoScreen({ navigation, route }) {
       return
     }
     if (newPwd !== confirmPwd) {
-      Alert.alert("Passwords don’t match", "Please confirm your new password.")
+      Alert.alert("Passwords don't match", "Please confirm your new password.")
       return
     }
 
@@ -221,7 +223,7 @@ export default function PersonalInfoScreen({ navigation, route }) {
         if (res.code === "INCORRECT_CURRENT") {
           Alert.alert("Incorrect password", "Your current password is incorrect.")
         } else {
-          Alert.alert("Couldn’t change password", "Please try again.")
+          Alert.alert("Couldn't change password", "Please try again.")
         }
         return
       }
@@ -232,7 +234,7 @@ export default function PersonalInfoScreen({ navigation, route }) {
       setShowCurrent(false)
       setShowNew(false)
       setShowConfirm(false)
-    } catch (e) {
+    } catch (_error) {
       Alert.alert("Oops", "Something went wrong while changing your password.")
     } finally {
       setChangingPwd(false)
@@ -241,19 +243,19 @@ export default function PersonalInfoScreen({ navigation, route }) {
 
   const onRegisterFace = async () => {
     if (!faceSupported) {
-      Alert.alert("Not supported", "Your device doesn’t support Face Recognition.")
+      Alert.alert("Not supported", "Your device doesn't support Face Recognition.")
       return
     }
 
     if (!biometricEnrolled) {
       // take user to OS settings to enroll
-      Alert.alert("Set up Face Recognition", "You’ll be taken to device settings to enroll your face.", [
+      Alert.alert("Set up Face Recognition", "You'll be taken to device settings to enroll your face.", [
         { text: "Cancel", style: "cancel" },
         {
           text: "Open Settings",
           onPress: () => {
             if (Platform.OS === "android") {
-              // Most Androids will open Settings; on iOS this opens the app’s settings screen
+              // Most Androids will open Settings; on iOS this opens the app's settings screen
               Linking.openSettings()
             } else {
               Linking.openSettings()
@@ -277,7 +279,7 @@ export default function PersonalInfoScreen({ navigation, route }) {
       } else {
         Alert.alert("Authentication failed", result.warning || "Please try again.")
       }
-    } catch (e) {
+    } catch (_error) {
       Alert.alert("Error", "Could not complete face authentication.")
     }
   }
@@ -395,7 +397,7 @@ export default function PersonalInfoScreen({ navigation, route }) {
                 {sendingLink ? (
                   <View className="flex-row items-center">
                     <ActivityIndicator color="#fff" size="small" />
-                    <Text className="ml-2 text-[13px] font-semibold text-white">Sending…</Text>
+                    <Text className="ml-2 text-[13px] font-semibold text-white">Sending...</Text>
                   </View>
                 ) : (
                   <View className="flex-row items-center">
@@ -413,7 +415,7 @@ export default function PersonalInfoScreen({ navigation, route }) {
           </Row>
         </FieldCard>
 
-        {/* 🔐 Change Password (NEW) */}
+        {/* Change Password (NEW) */}
         <FieldCard>
           <Label>Password</Label>
 
@@ -521,7 +523,7 @@ export default function PersonalInfoScreen({ navigation, route }) {
               {changingPwd ? (
                 <View className="flex-row items-center">
                   <ActivityIndicator color="#fff" size="small" />
-                  <Text className="ml-2 text-[13px] font-semibold text-white">Updating…</Text>
+                  <Text className="ml-2 text-[13px] font-semibold text-white">Updating...</Text>
                 </View>
               ) : (
                 <View className="flex-row items-center">
@@ -547,7 +549,7 @@ export default function PersonalInfoScreen({ navigation, route }) {
               accessibilityLabel="Mobile number"
             />
             <Text className="mt-2 text-[12px] text-gray-600">
-              We’ll use this for order updates and account recovery.
+              Well use this for order updates and account recovery.
             </Text>
           </Row>
         </FieldCard>
@@ -563,7 +565,7 @@ export default function PersonalInfoScreen({ navigation, route }) {
                 <Text className="ml-2 text-[15px] text-text">Face Recognition</Text>
               </View>
               {checkingBio ? (
-                <Text className="text-[12px] text-gray-500">Checking device capabilities…</Text>
+                <Text className="text-[12px] text-gray-500">Checking device capabilities...</Text>
               ) : faceSupported ? (
                 <Text className="text-[12px] text-gray-500">
                   {biometricEnrolled ? "Face is set up on this device." : "Not enrolled yet on this device."}
@@ -599,7 +601,7 @@ export default function PersonalInfoScreen({ navigation, route }) {
         >
           <View className="flex-row items-center justify-center">
             {saving ? <ActivityIndicator color="#fff" size="small" /> : <Ionicons name="save-outline" size={18} color="#fff" />}
-            <Text className="ml-2 text-base font-semibold text-white">{saving ? "Saving…" : "Save Changes"}</Text>
+            <Text className="ml-2 text-base font-semibold text-white">{saving ? "Saving..." : "Save Changes"}</Text>
           </View>
         </TouchableOpacity>
 

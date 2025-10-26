@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react"
+import React, { useCallback, useEffect, useRef } from "react"
 import {
   View,
   Image,
@@ -24,15 +24,15 @@ export default function SplashScreen({ navigation }) {
   const spin2 = useRef(new Animated.Value(0)).current
   const spin3 = useRef(new Animated.Value(0)).current
 
-  const goNext = () => {
+  const goNext = useCallback(() => {
     // prevent double navigation
     if (navigation.getState?.()?.routes?.slice(-1)[0]?.name !== "Login") {
       navigation.replace("Login")
     }
-  }
+  }, [navigation])
 
   useEffect(() => {
-    AccessibilityInfo.announceForAccessibility?.("Techno Mart is loading")
+    AccessibilityInfo.announceForAccessibility?.("TechnoMart is loading")
 
     // Spin loops for decorative icons (different durations so they de-sync)
     const loops = [
@@ -63,8 +63,10 @@ export default function SplashScreen({ navigation }) {
     ]
     loops.forEach(l => l.start())
 
+    let timeoutId
+
     // Logo intro + hold + delayed navigate
-    Animated.sequence([
+    const animation = Animated.sequence([
       Animated.parallel([
         Animated.timing(opacity, {
           toValue: 1,
@@ -86,17 +88,17 @@ export default function SplashScreen({ navigation }) {
         })
       ]),
       Animated.delay(650)
-    ]).start(() => {
-      const timeout = setTimeout(goNext, 2500) // extra pause before navigating
-      // cleanup for timeout + loops when unmounting
-      return () => {
-        clearTimeout(timeout)
-        loops.forEach(l => l.stop())
-      }
+    ])
+
+    animation.start(() => {
+      timeoutId = setTimeout(goNext, 2500) // extra pause before navigating
     })
 
-    // separate cleanup guard in case effect re-runs
-    return () => loops.forEach(l => l.stop())
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId)
+      animation.stop()
+      loops.forEach(l => l.stop())
+    }
   }, [goNext, logoY, opacity, scale, spin1, spin2, spin3])
 
   // map spin values to degrees (spin2 reversed for variety)
@@ -170,7 +172,7 @@ export default function SplashScreen({ navigation }) {
         <Animated.View
           accessible
           accessibilityRole="image"
-          accessibilityLabel="Techno Mart logo"
+          accessibilityLabel="TechnoMart logo"
           style={{
             opacity,
             transform: [{ scale }, { translateY: logoY }]

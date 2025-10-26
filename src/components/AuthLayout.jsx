@@ -1,25 +1,31 @@
 import React from 'react';
-import { SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
+import { KeyboardAvoidingView, Platform, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 /**
  * Shared layout used for authentication screens.
  *
- * This component wraps its children in a safe area and a keyboard avoiding view.
- * The background colour is set to the light peach tone defined in the tailwind
- * config so that all auth screens share the same warm, friendly appearance.
- *
- * If you need additional padding or spacing around your screen contents, set
- * those directly on the children rather than here – this keeps the layout
+ * Wraps children with safe-area padding and keyboard avoidance so that sign-in
+ * flows look consistent without duplicating boilerplate per screen.
+ * Apply any extra spacing directly on the child components to keep this layout
  * flexible.
  */
 export default function AuthLayout({ children }) {
+  const insets = useSafeAreaInsets();
+
   return (
-    <SafeAreaView className="flex-1 bg-peach-50">
+    <View
+      className="flex-1 bg-peach-50"
+      style={{
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom
+      }}
+    >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1">
         {children}
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }

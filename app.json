@@ -4,10 +4,10 @@
     "slug": "technomart-mobile-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "web" : {
+    "web": {
       "bundler": "metro"
     },
-    "icon": "./assets/logo.png",
+    "icon": "./assets/icon.png",
     "splash": {
       "image": "./assets/logo.png",
       "resizeMode": "contain",
@@ -30,10 +30,14 @@
     "android": {
       "package": "com.joseph224.technomartmobileapp",
       "softwareKeyboardLayoutMode": "pan",
-      "windowSoftInputMode": "adjustResize",
-      "permissions": ["CAMERA"],
+      "permissions": [
+        "CAMERA"
+      ],
       "blockedPermissions": []
     },
-    "owner": "joseph224"
+    "owner": "joseph224",
+    "plugins": [
+      "expo-router"
+    ]
   }
 }

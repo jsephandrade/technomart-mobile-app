@@ -127,19 +127,19 @@ export default function SignUpScreen({ navigation }) {
     []
   )
 
-  const setSafeLoading = setSafeState(setLoading)
-  const setSafeError = setSafeState(setErrorMessage)
-  const setSafeFirstName = setSafeState(setFirstName)
-  const setSafeLastName = setSafeState(setLastName)
-  const setSafeEmail = setSafeState(setEmail)
-  const setSafePassword = setSafeState(setPassword)
-  const setSafeConfirm = setSafeState(setConfirm)
-  const setSafeFirstTouched = setSafeState(setFirstTouched)
-  const setSafeLastTouched = setSafeState(setLastTouched)
-  const setSafeEmailTouched = setSafeState(setEmailTouched)
-  const setSafePasswordTouched = setSafeState(setPasswordTouched)
-  const setSafeConfirmTouched = setSafeState(setConfirmTouched)
-  const setSafeFormSubmitted = setSafeState(setFormSubmitted)
+  const setSafeLoading = useMemo(() => setSafeState(setLoading), [setSafeState])
+  const setSafeError = useMemo(() => setSafeState(setErrorMessage), [setSafeState])
+  const setSafeFirstName = useMemo(() => setSafeState(setFirstName), [setSafeState])
+  const setSafeLastName = useMemo(() => setSafeState(setLastName), [setSafeState])
+  const setSafeEmail = useMemo(() => setSafeState(setEmail), [setSafeState])
+  const setSafePassword = useMemo(() => setSafeState(setPassword), [setSafeState])
+  const setSafeConfirm = useMemo(() => setSafeState(setConfirm), [setSafeState])
+  const setSafeFirstTouched = useMemo(() => setSafeState(setFirstTouched), [setSafeState])
+  const setSafeLastTouched = useMemo(() => setSafeState(setLastTouched), [setSafeState])
+  const setSafeEmailTouched = useMemo(() => setSafeState(setEmailTouched), [setSafeState])
+  const setSafePasswordTouched = useMemo(() => setSafeState(setPasswordTouched), [setSafeState])
+  const setSafeConfirmTouched = useMemo(() => setSafeState(setConfirmTouched), [setSafeState])
+  const setSafeFormSubmitted = useMemo(() => setSafeState(setFormSubmitted), [setSafeState])
 
   // Clear top-level error as user edits
   useEffect(() => {
@@ -189,7 +189,7 @@ export default function SignUpScreen({ navigation }) {
   )
 
   // --- Submit handler (NO API; just navigate on valid form) ---
-  const handleRegister = useCallback(() => {
+  const handleRegister = useCallback(async () => {
     setSafeFormSubmitted(true)
 
     if (firstError || lastError || emailError || passwordError || confirmError) {
@@ -201,25 +201,32 @@ export default function SignUpScreen({ navigation }) {
     }
     if (loading) return
 
-    // No server call — go straight to success screen
-    AccessibilityInfo.announceForAccessibility?.(
-      "Account created successfully"
-    )
+    setSafeError("")
+    setSafeLoading(true)
 
-    // Clear inputs & touch state after success
-    setSafeFirstName("")
-    setSafeLastName("")
-    setSafeEmail("")
-    setSafePassword("")
-    setSafeConfirm("")
-    setSafeFirstTouched(false)
-    setSafeLastTouched(false)
-    setSafeEmailTouched(false)
-    setSafePasswordTouched(false)
-    setSafeConfirmTouched(false)
-    setSafeFormSubmitted(false)
+    try {
+      await new Promise(resolve => setTimeout(resolve, 300))
+      AccessibilityInfo.announceForAccessibility?.(
+        "Account created successfully"
+      )
 
-    navigation.navigate("AccountCreated", { email: trimmedEmail })
+      // Clear inputs & touch state after success
+      setSafeFirstName("")
+      setSafeLastName("")
+      setSafeEmail("")
+      setSafePassword("")
+      setSafeConfirm("")
+      setSafeFirstTouched(false)
+      setSafeLastTouched(false)
+      setSafeEmailTouched(false)
+      setSafePasswordTouched(false)
+      setSafeConfirmTouched(false)
+      setSafeFormSubmitted(false)
+
+      navigation.navigate("AccountCreated", { email: trimmedEmail })
+    } finally {
+      setSafeLoading(false)
+    }
   }, [
     firstError,
     lastError,
@@ -229,6 +236,7 @@ export default function SignUpScreen({ navigation }) {
     loading,
     trimmedEmail,
     setSafeError,
+    setSafeLoading,
     setSafeFirstName,
     setSafeLastName,
     setSafeEmail,
@@ -609,3 +617,4 @@ export default function SignUpScreen({ navigation }) {
     </AuthLayout>
   )
 }
+

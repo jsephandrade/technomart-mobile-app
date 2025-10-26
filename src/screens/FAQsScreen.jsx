@@ -17,7 +17,13 @@ import {
   AntDesign,
 } from "@expo/vector-icons"
 
-if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+const isFabricEnabled = global?.nativeFabricUIManager != null
+
+if (
+  Platform.OS === "android" &&
+  !isFabricEnabled &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
   UIManager.setLayoutAnimationEnabledExperimental(true)
 }
 
@@ -63,27 +69,27 @@ const DEFAULT_FAQS = [
   {
     id: "order-tracking",
     q: "How do I track my order?",
-    a: "Go to Profile → Orders to see real-time status. Tap an order to view courier details and a live map when available."
+    a: "Go to Profile > Orders to see real-time status. Tap an order to view courier details and a live map when available."
   },
   {
     id: "credits",
     q: "What are Credit Points and how do I use them?",
-    a: "You earn points from promos and completed orders. At checkout, toggle “Use Points” to apply them to your subtotal."
+    a: "You earn points from promos and completed orders. At checkout, toggle 'Use Points' to apply them to your subtotal."
   },
   {
     id: "refunds",
     q: "How do refunds work?",
-    a: "Refunds are issued back to your original payment method within 3–5 business days after approval. You’ll get an email once processed."
+    a: "Refunds are issued back to your original payment method within 3-5 business days after approval. You'll get an email once processed."
   },
   {
     id: "notifications",
-    q: "I’m not receiving notifications. What should I check?",
-    a: "In Profile → Notifications, ensure the toggle is on. Then, enable notifications for this app in your device Settings."
+    q: "I'm not receiving notifications. What should I check?",
+    a: "In Profile > Notifications, ensure the toggle is on. Then, enable notifications for this app in your device Settings."
   },
   {
     id: "support",
     q: "How do I contact support?",
-    a: "Open Profile → Share Feedback to submit an issue, or tap “Contact Support” below for quick help."
+    a: "Open Profile > Share Feedback to submit an issue, or tap 'Contact Support' below for quick help."
   },
 ]
 
@@ -224,7 +230,7 @@ export default function FAQsScreen({ navigation }) {
             <Feather name="chevron-right" size={18} color="#FFF" />
           </View>
           <Text className="mt-1 text-[12px] text-white/85">
-            Didn’t find what you need? We’re here to help.
+            {"Didn't find what you need? We're here to help."}
           </Text>
         </TouchableOpacity>
 
