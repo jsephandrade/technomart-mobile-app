@@ -10,8 +10,7 @@ import {
   Linking,
   Alert,
   BackHandler,
-  StyleSheet,
-  Platform
+  StyleSheet
 } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { LinearGradient } from "expo-linear-gradient"
@@ -23,16 +22,9 @@ import {
 } from "@expo/vector-icons"
 import { useFocusEffect } from "@react-navigation/native"
 import ConfirmLogoutModal from "../components/ConfirmLogoutModal"
+import BottomNavigation from "../components/BottomNavigation"
 import { useCart } from "../context/CartContext"
 import * as ImagePicker from "expo-image-picker"
-
-const BOTTOM_TABS = [
-  { key: "home", label: "Home", icon: "home" },
-  { key: "cart", label: "Cart", icon: "shopping-bag" },
-  { key: "history", label: "History", icon: "clock" },
-  { key: "alerts", label: "Alerts", icon: "bell", badge: true },
-  { key: "profile", label: "Profile", icon: "user" }
-]
 
 const DEFAULT_AVATAR =
   "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=800&auto=format&fit=crop"
@@ -116,7 +108,7 @@ export default function ProfileScreen({ navigation, route }) {
       return
     }
     if (key === "alerts") {
-      Alert.alert("Notifications", "You're all caught up!")
+      navigation.navigate("Alerts")
       return
     }
     Alert.alert("Coming soon", "This section will be available in a future update.")
@@ -478,48 +470,12 @@ export default function ProfileScreen({ navigation, route }) {
         <View className="h-6" />
       </ScrollView>
 
-      <View
-        style={[
-          styles.bottomTabs,
-          {
-            paddingBottom: Math.max(insets.bottom + 12, 20)
-          }
-        ]}
-        pointerEvents={lockNavigation ? "none" : "auto"}
-      >
-        {BOTTOM_TABS.map(tab => {
-          const isActive = tab.key === "profile"
-          const showBadge = tab.key === "cart" ? cartHasItems : tab.badge
-          return (
-            <TouchableOpacity
-              key={tab.key}
-              className="flex-1 items-center"
-              onPress={() => handleBottomTabPress(tab.key)}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: isActive, disabled: lockNavigation && tab.key !== "profile" }}
-              accessibilityLabel={tab.label}
-            >
-              <View
-                className="items-center justify-center rounded-full p-2"
-                style={[{ position: "relative" }, isActive ? styles.activeTab : null]}
-              >
-                <Feather
-                  name={tab.icon}
-                  size={22}
-                  color={isActive ? "#F07F13" : "#A8A29E"}
-                />
-                {showBadge ? <View style={styles.tabBadge} /> : null}
-              </View>
-              <Text
-                className="mt-1 text-xs font-medium"
-                style={{ color: isActive ? "#F07F13" : "#A8A29E" }}
-              >
-                {tab.label}
-              </Text>
-            </TouchableOpacity>
-          )
-        })}
-      </View>
+      <BottomNavigation
+        activeKey="profile"
+        cartHasItems={cartHasItems}
+        onTabPress={handleBottomTabPress}
+        disableAll={lockNavigation}
+      />
 
       {/* Confirmation Modal */}
       <ConfirmLogoutModal
@@ -580,40 +536,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
     marginLeft: 6
-  },
-  bottomTabs: {
-    position: "absolute",
-    left: 20,
-    right: 20,
-    bottom: 20,
-    borderRadius: 28,
-    backgroundColor: "#FFFFFF",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 18,
-    paddingTop: 12,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#0F172A",
-        shadowOffset: { width: 0, height: 12 },
-        shadowOpacity: 0.12,
-        shadowRadius: 18
-      },
-      android: {
-        elevation: 12
-      }
-    })
-  },
-  activeTab: {
-    backgroundColor: "#FFE8D6"
-  },
-  tabBadge: {
-    position: "absolute",
-    top: 6,
-    right: 8,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#EF4444"
   }
 })

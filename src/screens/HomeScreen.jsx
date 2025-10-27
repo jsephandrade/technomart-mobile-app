@@ -13,14 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons"
 import { RECOMMENDED_ITEMS, MENU_ITEMS } from "../utils/menuData"
 import { useCart } from "../context/CartContext"
-
-const BOTTOM_TABS = [
-  { key: "home", label: "Home", icon: "home" },
-  { key: "cart", label: "Cart", icon: "shopping-bag" },
-  { key: "history", label: "History", icon: "clock" },
-  { key: "alerts", label: "Alerts", icon: "bell", badge: true },
-  { key: "profile", label: "Profile", icon: "user" }
-]
+import BottomNavigation from "../components/BottomNavigation"
 
 const HERO_CATEGORIES = [
   { key: "hotMeals", label: "Hot Meals", icon: "food-steak", tint: "#F97316" },
@@ -268,43 +261,11 @@ export default function HomeScreen({ navigation }) {
         </View>
       </ScrollView>
 
-      <View
-        className="absolute bottom-5 left-5 right-5 flex-row justify-between rounded-[28px] bg-white px-[18px] pt-3 shadow-xl"
-        style={{ paddingBottom: Math.max(insets.bottom, 12), elevation: 12, shadowColor: "#0F172A" }}
-      >
-        {BOTTOM_TABS.map(tab => {
-          const isActive = tab.key === "home"
-          const showBadge = tab.key === "cart" ? cartHasItems : tab.badge
-          return (
-            <TouchableOpacity
-              key={tab.key}
-              className="flex-1 items-center"
-              onPress={() => handleTabPress(tab.key)}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: isActive }}
-              accessibilityLabel={tab.label}
-            >
-              <View
-                className={`relative items-center justify-center rounded-full p-2 ${
-                  isActive ? "bg-[#FFE8D6]" : "bg-transparent"
-                }`}
-              >
-                <Feather
-                  name={tab.icon}
-                  size={22}
-                  color={isActive ? "#F07F13" : "#A8A29E"}
-                />
-                {showBadge ? <View className="absolute right-2 top-1.5 h-2 w-2 rounded-full bg-red-500" /> : null}
-              </View>
-              <Text
-                className={`mt-1 text-xs font-medium ${isActive ? "text-[#F07F13]" : "text-[#A8A29E]"}`}
-              >
-                {tab.label}
-              </Text>
-            </TouchableOpacity>
-          )
-        })}
-      </View>
+      <BottomNavigation
+        activeKey="home"
+        cartHasItems={cartHasItems}
+        onTabPress={handleTabPress}
+      />
     </View>
   </ImageBackground>
   )
