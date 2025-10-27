@@ -55,7 +55,7 @@ export default function HomeScreen({ navigation }) {
       return
     }
     if (key === "alerts") {
-      Alert.alert("Notifications", "You're all caught up!")
+      navigation.navigate("Alerts")
       return
     }
     Alert.alert("Coming soon", "This section will be available in a future update.")
