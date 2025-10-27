@@ -12,6 +12,7 @@ import PersonalInfoScreen from "../screens/PersonalInfoScreen"
 import ShareFeedbackScreen from "../screens/ShareFeedbackScreen"
 import FAQsScreen from '../screens/FAQsScreen'
 import HomeScreen from "../screens/HomeScreen"
+import OrderHistoryScreen from "../screens/OrderHistoryScreen"
 import CartScreen from "../screens/CartScreen"
 import SearchScreen from "../screens/SearchScreen"
 import MenuListScreen from "../screens/MenuListScreen"
@@ -43,6 +44,7 @@ export default function RootNavigator() {
       <Stack.Screen name="PersonalInfo" component={PersonalInfoScreen} />
       <Stack.Screen name="Feedback" component={ShareFeedbackScreen} />
       <Stack.Screen name="FAQs" component={FAQsScreen} />
+      <Stack.Screen name="OrderHistory" component={OrderHistoryScreen} />
     </Stack.Navigator>
   )
 }

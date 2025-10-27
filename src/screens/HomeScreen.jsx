@@ -46,6 +46,10 @@ export default function HomeScreen({ navigation }) {
       navigation.navigate("Profile")
       return
     }
+    if (key === "history") {
+      navigation.navigate("OrderHistory")
+      return
+    }
     if (key === "cart") {
       navigation.navigate("Cart")
       return

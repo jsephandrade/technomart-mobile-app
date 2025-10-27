@@ -39,10 +39,10 @@ const Chip = ({ label, active, onPress, accessibilityLabel }) => (
   </TouchableOpacity>
 )
 
-export default function ShareFeedbackScreen({ navigation }) {
+export default function ShareFeedbackScreen({ navigation, route }) {
   const insets = useSafeAreaInsets()
-  const [text, setText] = React.useState("")
-  const [category, setCategory] = React.useState("Other")
+  const [text, setText] = React.useState(() => route?.params?.message ?? "")
+  const [category, setCategory] = React.useState(() => route?.params?.category ?? "Other")
   const remaining = MAX - text.length
   const isValid = text.trim().length >= MIN && text.length <= MAX
 

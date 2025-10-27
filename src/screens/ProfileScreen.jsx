@@ -111,13 +111,15 @@ export default function ProfileScreen({ navigation, route }) {
       navigation.navigate("Cart")
       return
     }
+    if (key === "history") {
+      navigation.navigate("OrderHistory")
+      return
+    }
     if (key === "alerts") {
       Alert.alert("Notifications", "You're all caught up!")
       return
     }
-    if (key === "history") {
-      Alert.alert("History", "Order history will be available soon.")
-    }
+    Alert.alert("Coming soon", "This section will be available in a future update.")
   }
 
   const handlePickAvatar = async () => {
